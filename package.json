@@ -1,24 +1,24 @@
 {
-  "name": "seedforge",
+  "name": "seedforge-prng",
   "version": "1.0.0",
-  "description": "Advanced pseudo-random number generator library with multiple algorithms, statistical distributions, and noise generators for procedural generation",
+  "description": "Advanced seedable PRNG library with multiple algorithms, statistical distributions, and noise generators for procedural generation, games, and simulations",
   "main": "dist/seedforge.js",
-  "module": "src/seedforge.mjs",
-  "browser": "dist/seedforge.min.js",
   "types": "types/seedforge.d.ts",
   "files": [
     "dist/",
-    "src/",
-    "types/"
+    "types/",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "test": "node test/test.js",
     "test:browser": "open test/browser-test.html",
-    "example": "node examples/examples.js"
+    "example": "node examples/examples.js",
+    "prepublishOnly": "npm test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/seedforge.git"
+    "url": "git+https://github.com/ClearanceClarence/SeedForge.git"
   },
   "keywords": [
     "prng",
@@ -26,24 +26,41 @@
     "rng",
     "seed",
     "seedable",
+    "deterministic",
     "procedural",
+    "procedural-generation",
     "generation",
     "noise",
     "simplex",
-    "perlin",
+    "simplex-noise",
+    "value-noise",
+    "fbm",
     "xoshiro",
     "pcg",
-    "mersenne",
+    "sfc32",
+    "mulberry32",
     "distribution",
     "gaussian",
     "normal",
+    "exponential",
+    "poisson",
+    "pareto",
     "game",
-    "simulation"
+    "gamedev",
+    "simulation",
+    "monte-carlo",
+    "weighted-random",
+    "shuffle",
+    "dice"
   ],
-  "author": "Your Name",
+  "author": "ClearanceClarence",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yourusername/seedforge/issues"
+    "url": "https://github.com/ClearanceClarence/SeedForge/issues"
   },
-  "homepage": "https://github.com/yourusername/seedforge#readme"
+  "homepage": "https://github.com/ClearanceClarence/SeedForge#readme",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "sideEffects": false
 }

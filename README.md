@@ -4,6 +4,8 @@
 
 A comprehensive, seedable PRNG library featuring multiple algorithms, statistical distributions, noise generators, and utilities designed for procedural generation, games, simulations, and reproducible randomness.
 
+[![npm version](https://img.shields.io/npm/v/seedforge-prng.svg)](https://www.npmjs.com/package/seedforge-prng)
+[![npm downloads](https://img.shields.io/npm/dm/seedforge-prng.svg)](https://www.npmjs.com/package/seedforge-prng)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -62,13 +64,13 @@ A comprehensive, seedable PRNG library featuring multiple algorithms, statistica
 ### npm
 
 ```bash
-npm install seedforge
+npm install seedforge-prng
 ```
 
 ### Browser (CDN)
 
 ```html
-<script src="https://unpkg.com/seedforge/dist/seedforge.js"></script>
+<script src="https://unpkg.com/seedforge-prng/dist/seedforge.js"></script>
 ```
 
 ### Manual Download
@@ -82,7 +84,7 @@ Download `seedforge.js` from the `dist/` folder and include it in your project.
 ### Node.js / CommonJS
 
 ```javascript
-const { PRNG } = require('seedforge');
+const { PRNG } = require('seedforge-prng');
 
 const rng = new PRNG('my-seed');
 console.log(rng.random());     // 0.7364291045814753
@@ -92,7 +94,7 @@ console.log(rng.int(1, 100));  // 42
 ### ES Modules
 
 ```javascript
-import { PRNG } from 'seedforge';
+import { PRNG } from 'seedforge-prng';
 
 const rng = new PRNG('my-seed');
 console.log(rng.random());
@@ -111,7 +113,7 @@ console.log(rng.random());
 ### Basic Example
 
 ```javascript
-const { PRNG } = require('seedforge');
+const { PRNG } = require('seedforge-prng');
 
 // Create a seeded generator
 const rng = new PRNG('my-game-seed');
@@ -176,7 +178,7 @@ const rng3 = new PRNG('seed', 'pcg32');      // Best for statistics
 ### Creating a Generator
 
 ```javascript
-const { PRNG } = require('seedforge');
+const { PRNG } = require('seedforge-prng');
 
 // With string seed (recommended)
 const rng = new PRNG('my-seed');
@@ -724,7 +726,7 @@ SeedForge includes two noise generators for procedural content.
 #### Value Noise
 
 ```javascript
-const { Noise } = require('seedforge');
+const { Noise } = require('seedforge-prng');
 
 const noise = new Noise.ValueNoise('seed');
 
@@ -788,7 +790,7 @@ noise.fbm(1.5, 2.3, 0.8, 4, 2.0, 0.5);
 ### Procedural Terrain Generation
 
 ```javascript
-const { PRNG, Noise } = require('seedforge');
+const { PRNG, Noise } = require('seedforge-prng');
 
 function generateHeightmap(seed, width, height) {
     const noise = new Noise.SimplexNoise(seed);
@@ -827,7 +829,7 @@ const terrain2 = generateHeightmap('world-42', 256, 256);
 ### RPG Loot System
 
 ```javascript
-const { PRNG } = require('seedforge');
+const { PRNG } = require('seedforge-prng');
 
 class LootTable {
     constructor(seed) {
@@ -886,7 +888,7 @@ console.log(chest1.generateLoot(10));
 ### NPC Name Generator
 
 ```javascript
-const { PRNG } = require('seedforge');
+const { PRNG } = require('seedforge-prng');
 
 class NameGenerator {
     constructor(seed) {
@@ -948,7 +950,7 @@ console.log(village.generateVillage(5));
 ### Dice Rolling System
 
 ```javascript
-const { PRNG } = require('seedforge');
+const { PRNG } = require('seedforge-prng');
 
 class DiceRoller {
     constructor(seed) {
@@ -1013,7 +1015,7 @@ console.log('Stat roll (4d6 drop lowest):', combat.rollDropLowest(4, 6));
 ### Card Deck Shuffling
 
 ```javascript
-const { PRNG } = require('seedforge');
+const { PRNG } = require('seedforge-prng');
 
 class Deck {
     constructor(seed) {
@@ -1070,7 +1072,7 @@ console.log('Player 2:', player2.map(c => c.name).join(' '));
 ### Procedural Colors
 
 ```javascript
-const { PRNG } = require('seedforge');
+const { PRNG } = require('seedforge-prng');
 
 class ColorPalette {
     constructor(seed) {
@@ -1132,7 +1134,7 @@ console.log(palette.generatePalette(5));
 ### Spawn Point Distribution
 
 ```javascript
-const { PRNG } = require('seedforge');
+const { PRNG } = require('seedforge-prng');
 
 class SpawnManager {
     constructor(seed) {
@@ -1212,7 +1214,7 @@ console.log(enemies);
 ### Save/Load Game State
 
 ```javascript
-const { PRNG } = require('seedforge');
+const { PRNG } = require('seedforge-prng');
 
 class Game {
     constructor(seed) {
@@ -1300,7 +1302,7 @@ console.log('Score from loaded game:', loadedGame.score);
 ### Parallel Random Streams
 
 ```javascript
-const { PRNG, Algorithms } = require('seedforge');
+const { PRNG, Algorithms } = require('seedforge-prng');
 
 // Method 1: Fork for sub-systems (recommended)
 function createWorldGenerators(worldSeed) {
@@ -1353,7 +1355,7 @@ const streams = createParallelStreams('base-seed', 8);
 ### Monte Carlo Simulation
 
 ```javascript
-const { PRNG } = require('seedforge');
+const { PRNG } = require('seedforge-prng');
 
 // Estimate Pi using Monte Carlo method
 function estimatePi(seed, samples) {
@@ -1461,7 +1463,7 @@ Benchmark generating 1,000,000 random numbers (approximate, varies by environmen
 ### ES Module (with bundler)
 
 ```javascript
-import { PRNG, Noise } from 'seedforge';
+import { PRNG, Noise } from 'seedforge-prng';
 
 const rng = new PRNG('seed');
 const noise = new Noise.SimplexNoise('seed');
@@ -1474,7 +1476,7 @@ const noise = new Noise.SimplexNoise('seed');
 SeedForge includes full TypeScript definitions in `types/seedforge.d.ts`.
 
 ```typescript
-import { PRNG, Noise, Point2D, RGB } from 'seedforge';
+import { PRNG, Noise, Point2D, RGB } from 'seedforge-prng';
 
 const rng: PRNG = new PRNG('seed', 'pcg32');
 

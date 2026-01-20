@@ -1,0 +1,32 @@
+# Test files
+test/
+*.test.js
+
+# Example files
+examples/
+
+# Documentation/website
+landing-page.html
+docs.html
+PUBLISHING.md
+
+# Source (only dist is needed)
+src/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.zip
+*.log
