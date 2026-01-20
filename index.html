@@ -1456,7 +1456,7 @@
                                 <span>11</span>
                             </div>
                             <div class="code-content">
-<span class="line"><span class="keyword">const</span> <span class="punctuation">{</span> <span class="variable">PRNG</span> <span class="punctuation">}</span> <span class="operator">=</span> <span class="function">require</span><span class="punctuation">(</span><span class="string">'seedforge'</span><span class="punctuation">);</span></span>
+<span class="line"><span class="keyword">const</span> <span class="punctuation">{</span> <span class="variable">PRNG</span> <span class="punctuation">}</span> <span class="operator">=</span> <span class="function">require</span><span class="punctuation">(</span><span class="string">'seedforge-prng'</span><span class="punctuation">);</span></span>
 <span class="line"></span>
 <span class="line"><span class="comment">// Create a seeded generator</span></span>
 <span class="line"><span class="keyword">const</span> <span class="variable">rng</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="function">PRNG</span><span class="punctuation">(</span><span class="string">'world-42'</span><span class="punctuation">);</span></span>
@@ -1851,7 +1851,7 @@
                             <div class="line-numbers">
                                 <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span>
                             </div>
-                            <pre><code><span class="keyword">const</span> <span class="punctuation">{</span> <span class="class">Noise</span> <span class="punctuation">}</span> <span class="operator">=</span> <span class="function">require</span><span class="punctuation">(</span><span class="string">'seedforge'</span><span class="punctuation">)</span><span class="punctuation">;</span>
+                            <pre><code><span class="keyword">const</span> <span class="punctuation">{</span> <span class="class">Noise</span> <span class="punctuation">}</span> <span class="operator">=</span> <span class="function">require</span><span class="punctuation">(</span><span class="string">'seedforge-prng'</span><span class="punctuation">)</span><span class="punctuation">;</span>
 
 <span class="keyword">const</span> <span class="variable">noise</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="class">Noise</span><span class="punctuation">.</span><span class="class">SimplexNoise</span><span class="punctuation">(</span><span class="string">'world-1'</span><span class="punctuation">)</span><span class="punctuation">;</span>
 
@@ -2081,8 +2081,8 @@
                 <div class="install-option">
                     <h3>npm</h3>
                     <div class="install-command">
-                        <span>npm install seedforge</span>
-                        <button class="install-copy-btn" onclick="copyText('npm install seedforge')">
+                        <span>npm install seedforge-prng</span>
+                        <button class="install-copy-btn" onclick="copyText('npm install seedforge-prng')">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
                         </button>
                     </div>
@@ -2090,8 +2090,8 @@
                 <div class="install-option">
                     <h3>CDN</h3>
                     <div class="install-command">
-                        <span style="font-size: 0.75rem;">unpkg.com/seedforge</span>
-                        <button class="install-copy-btn" onclick="copyText('https://unpkg.com/seedforge/dist/seedforge.js')">
+                        <span style="font-size: 0.75rem;">unpkg.com/seedforge-prng</span>
+                        <button class="install-copy-btn" onclick="copyText('https://unpkg.com/seedforge-prng/dist/seedforge.js')">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
                         </button>
                     </div>
@@ -2135,17 +2135,18 @@
                 <div class="footer-links">
                     <a href="https://github.com/ClearanceClarence/SeedForge">GitHub</a>
                     <a href="docs.html">Documentation</a>
+                    <a href="https://www.npmjs.com/package/seedforge-prng">npm</a>
                     <a href="#examples">Examples</a>
                 </div>
                 <div class="footer-copy">
-                    MIT License © 2026 SeedForge
+                    MIT License © 2025 SeedForge
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- SeedForge Library (inline for demo) -->
-    <script src="dist/seedforge.js"></script>
+    <!-- SeedForge Library from unpkg CDN -->
+    <script src="https://unpkg.com/seedforge-prng/dist/seedforge.js"></script>
     
     <script>
         // Demo functionality
@@ -2278,7 +2279,7 @@ const rarity = rng.weightedPickObject(lootTable);
 
 // Gold with Pareto distribution (occasional high values)
 const gold = Math.round(rng.pareto(1.5, 10));`,
-                terrain: `const { Noise } = require('seedforge');
+                terrain: `const { Noise } = require('seedforge-prng');
 
 const noise = new Noise.SimplexNoise('world-1');
 
