@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeedForge Documentation</title>
+    <meta name="description" content="Complete API documentation for SeedForge - Advanced seedable PRNG library for JavaScript">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-sidebar: #0d0d14;
+            --border: #2a2a3a;
+            --text: #e4e4e7;
+            --text-muted: #71717a;
+            --text-dim: #52525b;
+            --accent: #22c55e;
+            --accent-dim: #16a34a;
+            --purple: #a855f7;
+            --blue: #3b82f6;
+            --orange: #f97316;
+            --pink: #ec4899;
+            --cyan: #06b6d4;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-sidebar);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-logo span {
+            font-size: 1.3rem;
+        }
+
+        .sidebar-version {
+            font-size: 0.75rem;
+            color: var(--accent);
+            background: rgba(34, 197, 94, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: auto;
+        }
+
+        .sidebar-nav {
+            padding: 16px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 8px;
+        }
+
+        .nav-section-title {
+            padding: 8px 24px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 8px 24px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.15s;
+            border-left: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .nav-link.active {
+            color: var(--accent);
+            background: rgba(34, 197, 94, 0.05);
+            border-left-color: var(--accent);
+        }
+
+        .nav-link-sub {
+            padding-left: 40px;
+            font-size: 0.85rem;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            margin-left: 280px;
+            min-width: 0;
+        }
+
+        /* Top Bar */
+        .topbar {
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 50;
+        }
+
+        .topbar-title {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .topbar-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .topbar-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+
+        .topbar-links a:hover {
+            color: var(--text);
+        }
+
+        /* Content */
+        .content {
+            max-width: 900px;
+            padding: 40px;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-top: 48px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: var(--text-muted);
+        }
+
+        .lead {
+            font-size: 1.15rem;
+            color: var(--text);
+            margin-bottom: 32px;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Code */
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875em;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--pink);
+        }
+
+        pre {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 16px 0 24px;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #e6edf3;
+            font-size: 0.875rem;
+            line-height: 1.7;
+        }
+
+        /* Syntax highlighting */
+        .hljs-keyword { color: #ff7b72; }
+        .hljs-string { color: #a5d6ff; }
+        .hljs-number { color: #79c0ff; }
+        .hljs-comment { color: #8b949e; font-style: italic; }
+        .hljs-function { color: #d2a8ff; }
+        .hljs-variable { color: #ffa657; }
+        .hljs-property { color: #7ee787; }
+        .hljs-operator { color: #ff7b72; }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0 24px;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            color: var(--text-muted);
+        }
+
+        td code {
+            color: var(--accent);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 24px;
+            color: var(--text-muted);
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* Callouts */
+        .callout {
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            gap: 12px;
+        }
+
+        .callout-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .callout-content {
+            flex: 1;
+        }
+
+        .callout-content strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .callout-info {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid var(--blue);
+        }
+
+        .callout-info .callout-icon { color: var(--blue); }
+
+        .callout-warning {
+            background: rgba(249, 115, 22, 0.1);
+            border-left: 3px solid var(--orange);
+        }
+
+        .callout-warning .callout-icon { color: var(--orange); }
+
+        .callout-tip {
+            background: rgba(34, 197, 94, 0.1);
+            border-left: 3px solid var(--accent);
+        }
+
+        .callout-tip .callout-icon { color: var(--accent); }
+
+        /* Method Card */
+        .method-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin: 24px 0;
+            overflow: hidden;
+        }
+
+        .method-header {
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .method-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .method-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-instance {
+            background: rgba(168, 85, 247, 0.15);
+            color: var(--purple);
+        }
+
+        .badge-static {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--blue);
+        }
+
+        .method-body {
+            padding: 20px;
+        }
+
+        .method-signature {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+
+        .method-desc {
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .method-params {
+            margin-top: 16px;
+        }
+
+        .method-params h5 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .param-row {
+            display: flex;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .param-row:last-child {
+            border-bottom: none;
+        }
+
+        .param-name {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--orange);
+            min-width: 100px;
+        }
+
+        .param-type {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--cyan);
+            min-width: 100px;
+            font-size: 0.85rem;
+        }
+
+        .param-desc {
+            color: var(--text-muted);
+            flex: 1;
+        }
+
+        .method-returns {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .method-returns h5 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .returns-type {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--cyan);
+        }
+
+        /* Anchor links */
+        h2[id], h3[id] {
+            position: relative;
+        }
+
+        h2[id]:hover .anchor,
+        h3[id]:hover .anchor {
+            opacity: 1;
+        }
+
+        .anchor {
+            position: absolute;
+            left: -24px;
+            opacity: 0;
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .anchor:hover {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Section */
+        section {
+            padding-bottom: 40px;
+        }
+
+        /* Mobile */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .content {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-dim);
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="landing-page.html" class="sidebar-logo">
+                    <span>🌱</span>
+                    SeedForge
+                    <span class="sidebar-version">v1.0</span>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Getting Started</div>
+                    <a href="#installation" class="nav-link active">Installation</a>
+                    <a href="#quick-start" class="nav-link">Quick Start</a>
+                    <a href="#algorithms" class="nav-link">Algorithms</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Core API</div>
+                    <a href="#constructor" class="nav-link">Constructor</a>
+                    <a href="#basic-generation" class="nav-link">Basic Generation</a>
+                    <a href="#distributions" class="nav-link">Distributions</a>
+                    <a href="#array-utilities" class="nav-link">Array Utilities</a>
+                    <a href="#geometric" class="nav-link">Geometric</a>
+                    <a href="#special" class="nav-link">Special Generators</a>
+                    <a href="#state-management" class="nav-link">State Management</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Noise</div>
+                    <a href="#simplex-noise" class="nav-link">Simplex Noise</a>
+                    <a href="#value-noise" class="nav-link">Value Noise</a>
+                    <a href="#fbm" class="nav-link">Fractal Brownian Motion</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Advanced</div>
+                    <a href="#typescript" class="nav-link">TypeScript</a>
+                    <a href="#browser-usage" class="nav-link">Browser Usage</a>
+                    <a href="#performance" class="nav-link">Performance</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <header class="topbar">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+                <div class="topbar-title">Documentation</div>
+                <div class="topbar-links">
+                    <a href="https://github.com/ClearanceClarence/SeedForge">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        GitHub
+                    </a>
+                    <a href="https://www.npmjs.com/package/seedforge">
+                        npm
+                    </a>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Installation -->
+                <section id="installation">
+                    <h1>SeedForge Documentation</h1>
+                    <p class="lead">
+                        Advanced seedable pseudo-random number generator library for JavaScript with multiple algorithms, statistical distributions, and noise generators.
+                    </p>
+
+                    <h2 id="installation"><a href="#installation" class="anchor">#</a>Installation</h2>
+                    
+                    <h3>npm</h3>
+                    <pre><code>npm install seedforge</code></pre>
+
+                    <h3>CDN</h3>
+                    <pre><code>&lt;script src="https://unpkg.com/seedforge/dist/seedforge.js"&gt;&lt;/script&gt;</code></pre>
+
+                    <h3>ES Modules</h3>
+                    <pre><code><span class="hljs-keyword">import</span> { PRNG, Noise, Algorithms } <span class="hljs-keyword">from</span> <span class="hljs-string">'seedforge'</span>;</code></pre>
+
+                    <h3>CommonJS</h3>
+                    <pre><code><span class="hljs-keyword">const</span> { PRNG, Noise, Algorithms } = <span class="hljs-function">require</span>(<span class="hljs-string">'seedforge'</span>);</code></pre>
+                </section>
+
+                <!-- Quick Start -->
+                <section id="quick-start">
+                    <h2><a href="#quick-start" class="anchor">#</a>Quick Start</h2>
+                    
+                    <pre><code><span class="hljs-keyword">const</span> { PRNG } = <span class="hljs-function">require</span>(<span class="hljs-string">'seedforge'</span>);
+
+<span class="hljs-comment">// Create a seeded generator</span>
+<span class="hljs-keyword">const</span> rng = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'my-seed'</span>);
+
+<span class="hljs-comment">// Basic random values</span>
+rng.<span class="hljs-function">random</span>();          <span class="hljs-comment">// 0.0 to 1.0</span>
+rng.<span class="hljs-function">int</span>(<span class="hljs-number">1</span>, <span class="hljs-number">100</span>);       <span class="hljs-comment">// Integer 1-100</span>
+rng.<span class="hljs-function">float</span>(<span class="hljs-number">0</span>, <span class="hljs-number">10</span>);      <span class="hljs-comment">// Float 0-10</span>
+rng.<span class="hljs-function">bool</span>(<span class="hljs-number">0.5</span>);         <span class="hljs-comment">// 50% true</span>
+
+<span class="hljs-comment">// Array operations</span>
+rng.<span class="hljs-function">pick</span>([<span class="hljs-string">'a'</span>, <span class="hljs-string">'b'</span>, <span class="hljs-string">'c'</span>]);  <span class="hljs-comment">// Random element</span>
+rng.<span class="hljs-function">shuffle</span>([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>]);   <span class="hljs-comment">// Shuffled copy</span>
+
+<span class="hljs-comment">// Distributions</span>
+rng.<span class="hljs-function">normal</span>(<span class="hljs-number">100</span>, <span class="hljs-number">15</span>);   <span class="hljs-comment">// Gaussian</span>
+rng.<span class="hljs-function">exponential</span>(<span class="hljs-number">1.5</span>);  <span class="hljs-comment">// Exponential</span>
+
+<span class="hljs-comment">// Same seed = same results, every time!</span></code></pre>
+
+                    <div class="callout callout-tip">
+                        <div class="callout-icon">💡</div>
+                        <div class="callout-content">
+                            <strong>Reproducibility</strong>
+                            Using the same seed will always produce the same sequence of random numbers. This is perfect for procedural generation, replays, and testing.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Algorithms -->
+                <section id="algorithms">
+                    <h2><a href="#algorithms" class="anchor">#</a>Algorithms</h2>
+                    
+                    <p>SeedForge includes 6 PRNG algorithms. Choose based on your needs:</p>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Algorithm</th>
+                                <th>Period</th>
+                                <th>Speed</th>
+                                <th>Quality</th>
+                                <th>Best For</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>sfc32</code></td>
+                                <td>~2¹²⁸</td>
+                                <td>★★★★★</td>
+                                <td>★★★★★</td>
+                                <td>Best all-around</td>
+                            </tr>
+                            <tr>
+                                <td><code>xoshiro128</code></td>
+                                <td>2¹²⁸-1</td>
+                                <td>★★★★☆</td>
+                                <td>★★★★★</td>
+                                <td>General purpose (default)</td>
+                            </tr>
+                            <tr>
+                                <td><code>pcg32</code></td>
+                                <td>2⁶⁴</td>
+                                <td>★★★★☆</td>
+                                <td>★★★★★</td>
+                                <td>Simulations, statistics</td>
+                            </tr>
+                            <tr>
+                                <td><code>mulberry32</code></td>
+                                <td>~2³²</td>
+                                <td>★★★★★</td>
+                                <td>★★★☆☆</td>
+                                <td>Maximum speed</td>
+                            </tr>
+                            <tr>
+                                <td><code>xorshift128</code></td>
+                                <td>2¹²⁸-1</td>
+                                <td>★★★☆☆</td>
+                                <td>★★★★☆</td>
+                                <td>Compatibility</td>
+                            </tr>
+                            <tr>
+                                <td><code>lcg</code></td>
+                                <td>2³²</td>
+                                <td>★★★★★</td>
+                                <td>★★☆☆☆</td>
+                                <td>Legacy systems</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Selecting an Algorithm</h3>
+                    <pre><code><span class="hljs-comment">// Default (xoshiro128**)</span>
+<span class="hljs-keyword">const</span> rng1 = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'seed'</span>);
+
+<span class="hljs-comment">// Specify algorithm</span>
+<span class="hljs-keyword">const</span> rng2 = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'seed'</span>, <span class="hljs-string">'sfc32'</span>);
+<span class="hljs-keyword">const</span> rng3 = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'seed'</span>, <span class="hljs-string">'pcg32'</span>);
+<span class="hljs-keyword">const</span> rng4 = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'seed'</span>, <span class="hljs-string">'mulberry32'</span>);</code></pre>
+
+                    <div class="callout callout-info">
+                        <div class="callout-icon">ℹ️</div>
+                        <div class="callout-content">
+                            <strong>Recommendation</strong>
+                            Use <code>sfc32</code> for the best balance of speed and quality. Use <code>mulberry32</code> when you need maximum performance and don't require long periods.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Constructor -->
+                <section id="constructor">
+                    <h2><a href="#constructor" class="anchor">#</a>Constructor</h2>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">new PRNG(seed, algorithm?)</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">PRNG(seed: string | number, algorithm?: string)</div>
+                            <p class="method-desc">Creates a new seeded random number generator.</p>
+                            
+                            <div class="method-params">
+                                <h5>Parameters</h5>
+                                <div class="param-row">
+                                    <span class="param-name">seed</span>
+                                    <span class="param-type">string | number</span>
+                                    <span class="param-desc">Seed value. Strings are hashed to numbers.</span>
+                                </div>
+                                <div class="param-row">
+                                    <span class="param-name">algorithm</span>
+                                    <span class="param-type">string</span>
+                                    <span class="param-desc">Optional. One of: <code>'xoshiro128'</code>, <code>'sfc32'</code>, <code>'pcg32'</code>, <code>'mulberry32'</code>, <code>'xorshift128'</code>, <code>'lcg'</code>. Default: <code>'xoshiro128'</code></span>
+                                </div>
+                            </div>
+
+                            <div class="method-returns">
+                                <h5>Returns</h5>
+                                <span class="returns-type">PRNG</span> — A new PRNG instance
+                            </div>
+                        </div>
+                    </div>
+
+                    <pre><code><span class="hljs-comment">// String seed (hashed internally)</span>
+<span class="hljs-keyword">const</span> rng1 = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'my-world-seed'</span>);
+
+<span class="hljs-comment">// Numeric seed</span>
+<span class="hljs-keyword">const</span> rng2 = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-number">12345</span>);
+
+<span class="hljs-comment">// With specific algorithm</span>
+<span class="hljs-keyword">const</span> rng3 = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'seed'</span>, <span class="hljs-string">'sfc32'</span>);</code></pre>
+                </section>
+
+                <!-- Basic Generation -->
+                <section id="basic-generation">
+                    <h2><a href="#basic-generation" class="anchor">#</a>Basic Generation</h2>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.random()</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">random(): number</div>
+                            <p class="method-desc">Returns a random float in [0, 1).</p>
+                            <div class="method-returns">
+                                <h5>Returns</h5>
+                                <span class="returns-type">number</span> — Float from 0 (inclusive) to 1 (exclusive)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.int(min, max)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">int(min: number, max: number): number</div>
+                            <p class="method-desc">Returns a random integer in [min, max] (inclusive).</p>
+                            <div class="method-params">
+                                <h5>Parameters</h5>
+                                <div class="param-row">
+                                    <span class="param-name">min</span>
+                                    <span class="param-type">number</span>
+                                    <span class="param-desc">Minimum value (inclusive)</span>
+                                </div>
+                                <div class="param-row">
+                                    <span class="param-name">max</span>
+                                    <span class="param-type">number</span>
+                                    <span class="param-desc">Maximum value (inclusive)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.float(min, max)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">float(min: number, max: number): number</div>
+                            <p class="method-desc">Returns a random float in [min, max).</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.bool(probability?)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">bool(probability?: number): boolean</div>
+                            <p class="method-desc">Returns true with the given probability.</p>
+                            <div class="method-params">
+                                <h5>Parameters</h5>
+                                <div class="param-row">
+                                    <span class="param-name">probability</span>
+                                    <span class="param-type">number</span>
+                                    <span class="param-desc">Probability of true (0-1). Default: 0.5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.sign()</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">sign(): number</div>
+                            <p class="method-desc">Returns -1 or 1 with equal probability.</p>
+                        </div>
+                    </div>
+
+                    <pre><code><span class="hljs-keyword">const</span> rng = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'example'</span>);
+
+rng.<span class="hljs-function">random</span>();       <span class="hljs-comment">// 0.7234521</span>
+rng.<span class="hljs-function">int</span>(<span class="hljs-number">1</span>, <span class="hljs-number">6</span>);       <span class="hljs-comment">// 4 (dice roll)</span>
+rng.<span class="hljs-function">int</span>(<span class="hljs-number">0</span>, <span class="hljs-number">255</span>);     <span class="hljs-comment">// 182 (byte value)</span>
+rng.<span class="hljs-function">float</span>(<span class="hljs-number">-1</span>, <span class="hljs-number">1</span>);    <span class="hljs-comment">// -0.3421</span>
+rng.<span class="hljs-function">bool</span>();          <span class="hljs-comment">// true (50% chance)</span>
+rng.<span class="hljs-function">bool</span>(<span class="hljs-number">0.8</span>);       <span class="hljs-comment">// true (80% chance)</span>
+rng.<span class="hljs-function">sign</span>();          <span class="hljs-comment">// -1 or 1</span></code></pre>
+                </section>
+
+                <!-- Distributions -->
+                <section id="distributions">
+                    <h2><a href="#distributions" class="anchor">#</a>Statistical Distributions</h2>
+
+                    <p>SeedForge provides 11 statistical distributions for realistic data generation.</p>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.normal(mean, stdDev)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">normal(mean?: number, stdDev?: number): number</div>
+                            <p class="method-desc">Gaussian/normal distribution using Box-Muller transform.</p>
+                            <div class="method-params">
+                                <h5>Parameters</h5>
+                                <div class="param-row">
+                                    <span class="param-name">mean</span>
+                                    <span class="param-type">number</span>
+                                    <span class="param-desc">Center of distribution. Default: 0</span>
+                                </div>
+                                <div class="param-row">
+                                    <span class="param-name">stdDev</span>
+                                    <span class="param-type">number</span>
+                                    <span class="param-desc">Standard deviation. Default: 1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.exponential(lambda)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">exponential(lambda?: number): number</div>
+                            <p class="method-desc">Exponential distribution. Good for time between events.</p>
+                            <div class="method-params">
+                                <h5>Parameters</h5>
+                                <div class="param-row">
+                                    <span class="param-name">lambda</span>
+                                    <span class="param-type">number</span>
+                                    <span class="param-desc">Rate parameter. Default: 1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.poisson(lambda)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">poisson(lambda: number): number</div>
+                            <p class="method-desc">Poisson distribution. Good for counting events.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.pareto(alpha, xMin)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">pareto(alpha?: number, xMin?: number): number</div>
+                            <p class="method-desc">Pareto distribution. Good for wealth, city sizes, etc.</p>
+                        </div>
+                    </div>
+
+                    <h3>All Distributions</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Description</th>
+                                <th>Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>normal(μ, σ)</code></td>
+                                <td>Gaussian distribution</td>
+                                <td>Stats, heights, IQ scores</td>
+                            </tr>
+                            <tr>
+                                <td><code>exponential(λ)</code></td>
+                                <td>Exponential distribution</td>
+                                <td>Time between events</td>
+                            </tr>
+                            <tr>
+                                <td><code>poisson(λ)</code></td>
+                                <td>Poisson distribution</td>
+                                <td>Event counts</td>
+                            </tr>
+                            <tr>
+                                <td><code>pareto(α, xMin)</code></td>
+                                <td>Pareto distribution</td>
+                                <td>Wealth, loot values</td>
+                            </tr>
+                            <tr>
+                                <td><code>gamma(k, θ)</code></td>
+                                <td>Gamma distribution</td>
+                                <td>Wait times</td>
+                            </tr>
+                            <tr>
+                                <td><code>beta(α, β)</code></td>
+                                <td>Beta distribution</td>
+                                <td>Probabilities, percentages</td>
+                            </tr>
+                            <tr>
+                                <td><code>binomial(n, p)</code></td>
+                                <td>Binomial distribution</td>
+                                <td>Success counts</td>
+                            </tr>
+                            <tr>
+                                <td><code>geometric(p)</code></td>
+                                <td>Geometric distribution</td>
+                                <td>Trials until success</td>
+                            </tr>
+                            <tr>
+                                <td><code>triangular(min, max, mode)</code></td>
+                                <td>Triangular distribution</td>
+                                <td>Estimates with known bounds</td>
+                            </tr>
+                            <tr>
+                                <td><code>logNormal(μ, σ)</code></td>
+                                <td>Log-normal distribution</td>
+                                <td>Stock prices, sizes</td>
+                            </tr>
+                            <tr>
+                                <td><code>cauchy(x0, γ)</code></td>
+                                <td>Cauchy distribution</td>
+                                <td>Heavy-tailed data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <pre><code><span class="hljs-keyword">const</span> rng = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'stats'</span>);
+
+<span class="hljs-comment">// IQ scores (mean 100, stddev 15)</span>
+rng.<span class="hljs-function">normal</span>(<span class="hljs-number">100</span>, <span class="hljs-number">15</span>);  <span class="hljs-comment">// 94.28</span>
+
+<span class="hljs-comment">// Loot gold (minimum 10, Pareto distributed)</span>
+rng.<span class="hljs-function">pareto</span>(<span class="hljs-number">1.5</span>, <span class="hljs-number">10</span>);  <span class="hljs-comment">// Usually low, occasionally high</span>
+
+<span class="hljs-comment">// Enemy spawn count</span>
+rng.<span class="hljs-function">poisson</span>(<span class="hljs-number">3</span>);       <span class="hljs-comment">// Average of 3</span>
+
+<span class="hljs-comment">// Task completion percentage</span>
+rng.<span class="hljs-function">beta</span>(<span class="hljs-number">2</span>, <span class="hljs-number">5</span>);        <span class="hljs-comment">// Skewed toward lower values</span></code></pre>
+                </section>
+
+                <!-- Array Utilities -->
+                <section id="array-utilities">
+                    <h2><a href="#array-utilities" class="anchor">#</a>Array Utilities</h2>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.pick(array)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">pick&lt;T&gt;(array: T[]): T</div>
+                            <p class="method-desc">Returns a random element from the array.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.sample(array, count)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">sample&lt;T&gt;(array: T[], count: number): T[]</div>
+                            <p class="method-desc">Returns multiple unique random elements.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.shuffle(array)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">shuffle&lt;T&gt;(array: T[]): T[]</div>
+                            <p class="method-desc">Returns a shuffled copy (Fisher-Yates algorithm).</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.weightedPick(array, weights)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">weightedPick&lt;T&gt;(array: T[], weights: number[]): T</div>
+                            <p class="method-desc">Picks an element with probability proportional to its weight.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.weightedPickObject(weights)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">weightedPickObject(weights: Record&lt;string, number&gt;): string</div>
+                            <p class="method-desc">Picks a key from an object based on values as weights.</p>
+                        </div>
+                    </div>
+
+                    <pre><code><span class="hljs-keyword">const</span> rng = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'arrays'</span>);
+
+<span class="hljs-comment">// Pick random element</span>
+rng.<span class="hljs-function">pick</span>([<span class="hljs-string">'sword'</span>, <span class="hljs-string">'shield'</span>, <span class="hljs-string">'potion'</span>]);  <span class="hljs-comment">// 'shield'</span>
+
+<span class="hljs-comment">// Draw 3 cards without replacement</span>
+rng.<span class="hljs-function">sample</span>([<span class="hljs-string">'A'</span>, <span class="hljs-string">'K'</span>, <span class="hljs-string">'Q'</span>, <span class="hljs-string">'J'</span>, <span class="hljs-string">'10'</span>], <span class="hljs-number">3</span>);  <span class="hljs-comment">// ['K', '10', 'A']</span>
+
+<span class="hljs-comment">// Shuffle a deck</span>
+<span class="hljs-keyword">const</span> deck = [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>];
+rng.<span class="hljs-function">shuffle</span>(deck);  <span class="hljs-comment">// [3, 1, 5, 2, 4]</span>
+
+<span class="hljs-comment">// Weighted selection</span>
+rng.<span class="hljs-function">weightedPick</span>(
+    [<span class="hljs-string">'common'</span>, <span class="hljs-string">'rare'</span>, <span class="hljs-string">'legendary'</span>],
+    [<span class="hljs-number">70</span>, <span class="hljs-number">25</span>, <span class="hljs-number">5</span>]
+);  <span class="hljs-comment">// Most likely 'common'</span>
+
+<span class="hljs-comment">// Object-based weights (loot table)</span>
+rng.<span class="hljs-function">weightedPickObject</span>({
+    common: <span class="hljs-number">60</span>,
+    uncommon: <span class="hljs-number">25</span>,
+    rare: <span class="hljs-number">10</span>,
+    legendary: <span class="hljs-number">5</span>
+});  <span class="hljs-comment">// 'common'</span></code></pre>
+                </section>
+
+                <!-- Geometric -->
+                <section id="geometric">
+                    <h2><a href="#geometric" class="anchor">#</a>Geometric Utilities</h2>
+
+                    <p>Generate random points in various shapes for spawn systems and spatial distribution.</p>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.pointInCircle(radius)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">pointInCircle(radius?: number): {x: number, y: number}</div>
+                            <p class="method-desc">Random point uniformly distributed inside a circle.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.pointOnCircle(radius)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">pointOnCircle(radius?: number): {x: number, y: number}</div>
+                            <p class="method-desc">Random point on the circumference of a circle.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.pointInSphere(radius)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">pointInSphere(radius?: number): {x, y, z}</div>
+                            <p class="method-desc">Random point uniformly distributed inside a sphere.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.pointInRect(width, height)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">pointInRect(width: number, height: number): {x, y}</div>
+                            <p class="method-desc">Random point inside a rectangle.</p>
+                        </div>
+                    </div>
+
+                    <pre><code><span class="hljs-keyword">const</span> rng = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'geometry'</span>);
+
+<span class="hljs-comment">// Spawn enemy within 50 units of player</span>
+<span class="hljs-keyword">const</span> spawn = rng.<span class="hljs-function">pointInCircle</span>(<span class="hljs-number">50</span>);
+<span class="hljs-comment">// { x: 23.4, y: -31.2 }</span>
+
+<span class="hljs-comment">// Place items around a ring</span>
+<span class="hljs-keyword">const</span> item = rng.<span class="hljs-function">pointOnCircle</span>(<span class="hljs-number">100</span>);
+<span class="hljs-comment">// { x: 87.3, y: 48.7 }</span>
+
+<span class="hljs-comment">// 3D particle spawn</span>
+<span class="hljs-keyword">const</span> particle = rng.<span class="hljs-function">pointInSphere</span>(<span class="hljs-number">10</span>);
+<span class="hljs-comment">// { x: 3.2, y: -5.1, z: 7.8 }</span>
+
+<span class="hljs-comment">// Random position in room</span>
+<span class="hljs-keyword">const</span> pos = rng.<span class="hljs-function">pointInRect</span>(<span class="hljs-number">800</span>, <span class="hljs-number">600</span>);
+<span class="hljs-comment">// { x: 423.5, y: 187.2 }</span></code></pre>
+                </section>
+
+                <!-- Special -->
+                <section id="special">
+                    <h2><a href="#special" class="anchor">#</a>Special Generators</h2>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.uuid()</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">uuid(): string</div>
+                            <p class="method-desc">Generates a UUID v4 string.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.color()</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">color(): string</div>
+                            <p class="method-desc">Generates a random hex color (#RRGGBB).</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.colorRGB()</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">colorRGB(): {r: number, g: number, b: number}</div>
+                            <p class="method-desc">Generates random RGB values (0-255).</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.colorHSL(sRange?, lRange?)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">colorHSL(sRange?, lRange?): {h, s, l}</div>
+                            <p class="method-desc">Generates HSL color with optional saturation/lightness constraints.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.angle()</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">angle(): number</div>
+                            <p class="method-desc">Returns a random angle in radians [0, 2π).</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.angleDeg()</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">angleDeg(): number</div>
+                            <p class="method-desc">Returns a random angle in degrees [0, 360).</p>
+                        </div>
+                    </div>
+
+                    <pre><code><span class="hljs-keyword">const</span> rng = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'special'</span>);
+
+rng.<span class="hljs-function">uuid</span>();      <span class="hljs-comment">// 'f47ac10b-58cc-4372-a567-0e02b2c3d479'</span>
+rng.<span class="hljs-function">color</span>();     <span class="hljs-comment">// '#7a3f9c'</span>
+rng.<span class="hljs-function">colorRGB</span>();  <span class="hljs-comment">// { r: 122, g: 63, b: 156 }</span>
+rng.<span class="hljs-function">colorHSL</span>();  <span class="hljs-comment">// { h: 274, s: 42, l: 43 }</span>
+rng.<span class="hljs-function">angle</span>();     <span class="hljs-comment">// 4.234 (radians)</span>
+rng.<span class="hljs-function">angleDeg</span>();  <span class="hljs-comment">// 242.5 (degrees)</span></code></pre>
+                </section>
+
+                <!-- State Management -->
+                <section id="state-management">
+                    <h2><a href="#state-management" class="anchor">#</a>State Management</h2>
+
+                    <p>Save, restore, clone, and fork generators for game saves, replays, and parallel streams.</p>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.getState()</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">getState(): PRNGState</div>
+                            <p class="method-desc">Returns the current internal state (serializable to JSON).</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.setState(state)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">setState(state: PRNGState): void</div>
+                            <p class="method-desc">Restores a previously saved state.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.clone()</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">clone(): PRNG</div>
+                            <p class="method-desc">Creates an independent copy with the same state.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.fork(newSeed?)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">fork(newSeed?: string | number): PRNG</div>
+                            <p class="method-desc">Creates a new generator seeded from current state (for parallel streams).</p>
+                        </div>
+                    </div>
+
+                    <pre><code><span class="hljs-keyword">const</span> rng = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'game'</span>);
+
+<span class="hljs-comment">// Generate some values</span>
+rng.<span class="hljs-function">random</span>();
+rng.<span class="hljs-function">random</span>();
+
+<span class="hljs-comment">// Save state</span>
+<span class="hljs-keyword">const</span> savedState = rng.<span class="hljs-function">getState</span>();
+<span class="hljs-keyword">const</span> json = <span class="hljs-variable">JSON</span>.<span class="hljs-function">stringify</span>(savedState);
+
+<span class="hljs-comment">// ... later, restore state</span>
+rng.<span class="hljs-function">setState</span>(<span class="hljs-variable">JSON</span>.<span class="hljs-function">parse</span>(json));
+
+<span class="hljs-comment">// Clone for parallel use</span>
+<span class="hljs-keyword">const</span> rng2 = rng.<span class="hljs-function">clone</span>();
+rng.<span class="hljs-function">random</span>() === rng2.<span class="hljs-function">random</span>();  <span class="hljs-comment">// true</span>
+
+<span class="hljs-comment">// Fork for independent streams</span>
+<span class="hljs-keyword">const</span> weatherRng = rng.<span class="hljs-function">fork</span>(<span class="hljs-string">'weather'</span>);
+<span class="hljs-keyword">const</span> combatRng = rng.<span class="hljs-function">fork</span>(<span class="hljs-string">'combat'</span>);</code></pre>
+
+                    <div class="callout callout-tip">
+                        <div class="callout-icon">💡</div>
+                        <div class="callout-content">
+                            <strong>Game Saves</strong>
+                            Use <code>getState()</code> and <code>setState()</code> to save/restore the exact position in the random sequence. This is essential for savegames and replay systems.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Simplex Noise -->
+                <section id="simplex-noise">
+                    <h2><a href="#simplex-noise" class="anchor">#</a>Simplex Noise</h2>
+
+                    <p>Simplex noise is ideal for procedural terrain, textures, and organic patterns.</p>
+
+                    <pre><code><span class="hljs-keyword">const</span> { Noise } = <span class="hljs-function">require</span>(<span class="hljs-string">'seedforge'</span>);
+
+<span class="hljs-keyword">const</span> noise = <span class="hljs-keyword">new</span> Noise.<span class="hljs-function">SimplexNoise</span>(<span class="hljs-string">'terrain'</span>);
+
+<span class="hljs-comment">// 2D noise</span>
+noise.<span class="hljs-function">noise2D</span>(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>);       <span class="hljs-comment">// -1 to 1</span>
+noise.<span class="hljs-function">noise2D</span>(<span class="hljs-number">0.5</span>, <span class="hljs-number">0.5</span>);   <span class="hljs-comment">// Smooth variation</span>
+
+<span class="hljs-comment">// 3D noise</span>
+noise.<span class="hljs-function">noise3D</span>(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>);    <span class="hljs-comment">// For volumetric data</span>
+
+<span class="hljs-comment">// Fractal Brownian Motion (fBm)</span>
+noise.<span class="hljs-function">fbm</span>(x, y, z, octaves, lacunarity, persistence);</code></pre>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">new Noise.SimplexNoise(seed)</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">SimplexNoise(seed: string | number)</div>
+                            <p class="method-desc">Creates a seeded Simplex noise generator.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.noise2D(x, y)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">noise2D(x: number, y: number): number</div>
+                            <p class="method-desc">Returns 2D noise value at coordinates. Range: [-1, 1].</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.noise3D(x, y, z)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">noise3D(x: number, y: number, z: number): number</div>
+                            <p class="method-desc">Returns 3D noise value at coordinates. Range: [-1, 1].</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Value Noise -->
+                <section id="value-noise">
+                    <h2><a href="#value-noise" class="anchor">#</a>Value Noise</h2>
+
+                    <pre><code><span class="hljs-keyword">const</span> noise = <span class="hljs-keyword">new</span> Noise.<span class="hljs-function">ValueNoise</span>(<span class="hljs-string">'seed'</span>);
+
+noise.<span class="hljs-function">noise2D</span>(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>);
+noise.<span class="hljs-function">noise3D</span>(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>);
+noise.<span class="hljs-function">fbm</span>(x, y, z, octaves, lacunarity, persistence);</code></pre>
+                </section>
+
+                <!-- fBm -->
+                <section id="fbm">
+                    <h2><a href="#fbm" class="anchor">#</a>Fractal Brownian Motion</h2>
+
+                    <p>fBm layers multiple octaves of noise for more natural-looking results.</p>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.fbm(x, y, z?, octaves?, lacunarity?, persistence?)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">fbm(x, y, z?, octaves?, lacunarity?, persistence?): number</div>
+                            <p class="method-desc">Fractal Brownian Motion - layered noise for natural terrain.</p>
+                            <div class="method-params">
+                                <h5>Parameters</h5>
+                                <div class="param-row">
+                                    <span class="param-name">x, y</span>
+                                    <span class="param-type">number</span>
+                                    <span class="param-desc">Coordinates</span>
+                                </div>
+                                <div class="param-row">
+                                    <span class="param-name">z</span>
+                                    <span class="param-type">number?</span>
+                                    <span class="param-desc">Optional Z coordinate for 3D</span>
+                                </div>
+                                <div class="param-row">
+                                    <span class="param-name">octaves</span>
+                                    <span class="param-type">number</span>
+                                    <span class="param-desc">Number of layers. Default: 4</span>
+                                </div>
+                                <div class="param-row">
+                                    <span class="param-name">lacunarity</span>
+                                    <span class="param-type">number</span>
+                                    <span class="param-desc">Frequency multiplier per octave. Default: 2.0</span>
+                                </div>
+                                <div class="param-row">
+                                    <span class="param-name">persistence</span>
+                                    <span class="param-type">number</span>
+                                    <span class="param-desc">Amplitude multiplier per octave. Default: 0.5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <pre><code><span class="hljs-keyword">const</span> noise = <span class="hljs-keyword">new</span> Noise.<span class="hljs-function">SimplexNoise</span>(<span class="hljs-string">'world'</span>);
+
+<span class="hljs-comment">// Generate heightmap</span>
+<span class="hljs-keyword">function</span> <span class="hljs-function">getHeight</span>(x, y) {
+    <span class="hljs-keyword">let</span> h = noise.<span class="hljs-function">fbm</span>(
+        x * <span class="hljs-number">0.01</span>,     <span class="hljs-comment">// Scale down coordinates</span>
+        y * <span class="hljs-number">0.01</span>,
+        <span class="hljs-keyword">null</span>,          <span class="hljs-comment">// 2D (no z)</span>
+        <span class="hljs-number">6</span>,             <span class="hljs-comment">// 6 octaves</span>
+        <span class="hljs-number">2.0</span>,           <span class="hljs-comment">// Lacunarity</span>
+        <span class="hljs-number">0.5</span>            <span class="hljs-comment">// Persistence</span>
+    );
+    
+    <span class="hljs-comment">// Normalize from [-1,1] to [0,1]</span>
+    <span class="hljs-keyword">return</span> (h + <span class="hljs-number">1</span>) / <span class="hljs-number">2</span>;
+}</code></pre>
+
+                    <div class="callout callout-info">
+                        <div class="callout-icon">ℹ️</div>
+                        <div class="callout-content">
+                            <strong>Octaves</strong>
+                            More octaves = more detail but slower. 4-6 octaves is usually sufficient for terrain.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TypeScript -->
+                <section id="typescript">
+                    <h2><a href="#typescript" class="anchor">#</a>TypeScript</h2>
+
+                    <p>SeedForge includes full TypeScript definitions.</p>
+
+                    <pre><code><span class="hljs-keyword">import</span> { PRNG, Noise, PRNGState, Point2D, RGB } <span class="hljs-keyword">from</span> <span class="hljs-string">'seedforge'</span>;
+
+<span class="hljs-keyword">const</span> rng: PRNG = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'seed'</span>);
+
+<span class="hljs-keyword">const</span> value: <span class="hljs-variable">number</span> = rng.<span class="hljs-function">random</span>();
+<span class="hljs-keyword">const</span> point: <span class="hljs-variable">Point2D</span> = rng.<span class="hljs-function">pointInCircle</span>(<span class="hljs-number">10</span>);
+<span class="hljs-keyword">const</span> color: <span class="hljs-variable">RGB</span> = rng.<span class="hljs-function">colorRGB</span>();
+<span class="hljs-keyword">const</span> state: <span class="hljs-variable">PRNGState</span> = rng.<span class="hljs-function">getState</span>();
+
+<span class="hljs-keyword">const</span> noise: Noise.<span class="hljs-variable">SimplexNoise</span> = <span class="hljs-keyword">new</span> Noise.<span class="hljs-function">SimplexNoise</span>(<span class="hljs-string">'terrain'</span>);</code></pre>
+                </section>
+
+                <!-- Browser Usage -->
+                <section id="browser-usage">
+                    <h2><a href="#browser-usage" class="anchor">#</a>Browser Usage</h2>
+
+                    <h3>Script Tag</h3>
+                    <pre><code>&lt;script src="https://unpkg.com/seedforge/dist/seedforge.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    <span class="hljs-keyword">const</span> rng = <span class="hljs-keyword">new</span> PRNG.<span class="hljs-function">PRNG</span>(<span class="hljs-string">'seed'</span>);
+    <span class="hljs-keyword">const</span> noise = <span class="hljs-keyword">new</span> PRNG.Noise.<span class="hljs-function">SimplexNoise</span>(<span class="hljs-string">'terrain'</span>);
+&lt;/script&gt;</code></pre>
+
+                    <h3>ES Modules</h3>
+                    <pre><code>&lt;script type="module"&gt;
+    <span class="hljs-keyword">import</span> { PRNG, Noise } <span class="hljs-keyword">from</span> <span class="hljs-string">'https://unpkg.com/seedforge/dist/seedforge.mjs'</span>;
+    
+    <span class="hljs-keyword">const</span> rng = <span class="hljs-keyword">new</span> <span class="hljs-function">PRNG</span>(<span class="hljs-string">'seed'</span>);
+&lt;/script&gt;</code></pre>
+                </section>
+
+                <!-- Performance -->
+                <section id="performance">
+                    <h2><a href="#performance" class="anchor">#</a>Performance</h2>
+
+                    <p>Benchmark results (operations per second, higher is better):</p>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Algorithm</th>
+                                <th>ops/sec</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>mulberry32</code></td>
+                                <td>~50M</td>
+                                <td>Fastest</td>
+                            </tr>
+                            <tr>
+                                <td><code>sfc32</code></td>
+                                <td>~45M</td>
+                                <td>Recommended</td>
+                            </tr>
+                            <tr>
+                                <td><code>xoshiro128</code></td>
+                                <td>~40M</td>
+                                <td>Default</td>
+                            </tr>
+                            <tr>
+                                <td><code>pcg32</code></td>
+                                <td>~35M</td>
+                                <td>High quality</td>
+                            </tr>
+                            <tr>
+                                <td><code>xorshift128</code></td>
+                                <td>~20M</td>
+                                <td>Slower in JS</td>
+                            </tr>
+                            <tr>
+                                <td><code>lcg</code></td>
+                                <td>~50M</td>
+                                <td>Lower quality</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="callout callout-warning">
+                        <div class="callout-icon">⚠️</div>
+                        <div class="callout-content">
+                            <strong>xorshift128 Performance</strong>
+                            The xorshift128 algorithm is slower in JavaScript due to 64-bit integer emulation. Use <code>sfc32</code> or <code>mulberry32</code> for performance-critical code.
+                        </div>
+                    </div>
+                </section>
+
+                <footer style="margin-top: 80px; padding-top: 40px; border-top: 1px solid var(--border); text-align: center;">
+                    <p style="color: var(--text-dim);">
+                        SeedForge is MIT licensed.<br>
+                        <a href="https://github.com/ClearanceClarence/SeedForge">GitHub</a> · 
+                        <a href="https://www.npmjs.com/package/seedforge">npm</a>
+                    </p>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Mobile sidebar toggle
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Active nav link highlighting
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        function updateActiveLink() {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', updateActiveLink);
+
+        // Close sidebar on link click (mobile)
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    document.getElementById('sidebar').classList.remove('open');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

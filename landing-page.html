@@ -1,0 +1,2363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeedForge - Advanced PRNG Library for JavaScript</title>
+    <meta name="description" content="Seedable pseudo-random number generator library with multiple algorithms, statistical distributions, and noise generators for procedural generation, games, and simulations.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-card-hover: #1a1a24;
+            --border: #2a2a3a;
+            --text: #e4e4e7;
+            --text-muted: #71717a;
+            --text-dim: #52525b;
+            --accent: #22c55e;
+            --accent-dim: #16a34a;
+            --accent-glow: rgba(34, 197, 94, 0.15);
+            --purple: #a855f7;
+            --blue: #3b82f6;
+            --orange: #f97316;
+            --pink: #ec4899;
+            --cyan: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(34, 197, 94, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 197, 94, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(34, 197, 94, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        section {
+            padding: 100px 0;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 16px 0;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-cta {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-dim);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--text-muted);
+        }
+
+        .btn-large {
+            padding: 14px 28px;
+            font-size: 1rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 80px;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: var(--accent-glow);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--text) 0%, var(--text-muted) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--accent) 0%, #4ade80 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .hero-description {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            max-width: 500px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+        }
+
+        .stat {
+            text-align: left;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Hero Visual */
+        .hero-visual {
+            position: relative;
+        }
+
+        .code-window {
+            background: #0d1117;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                0 25px 50px -12px rgba(0, 0, 0, 0.6),
+                0 0 80px rgba(34, 197, 94, 0.1);
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 18px;
+            background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+            border-bottom: 1px solid #30363d;
+        }
+
+        .code-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .code-dot.red { background: #ff5f57; }
+        .code-dot.yellow { background: #febc2e; }
+        .code-dot.green { background: #28c840; }
+
+        .code-window:hover .code-dot.red { box-shadow: 0 0 8px #ff5f57; }
+        .code-window:hover .code-dot.yellow { box-shadow: 0 0 8px #febc2e; }
+        .code-window:hover .code-dot.green { box-shadow: 0 0 8px #28c840; }
+
+        .code-title {
+            margin-left: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .code-title-icon {
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #f7df1e 0%, #f0d000 100%);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .code-title-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #e6edf3;
+        }
+
+        .code-body {
+            display: flex;
+        }
+
+        .code-line-numbers {
+            padding: 20px 0;
+            text-align: right;
+            user-select: none;
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid #21262d;
+        }
+
+        .code-line-numbers span {
+            display: block;
+            padding: 0 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.65;
+            color: #484f58;
+        }
+
+        .code-content {
+            padding: 20px 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.65;
+            overflow-x: auto;
+            flex: 1;
+        }
+
+        .code-content .line {
+            display: block;
+        }
+
+        /* GitHub-style syntax highlighting for hero */
+        .code-content .comment { color: #8b949e; font-style: italic; }
+        .code-content .keyword { color: #ff7b72; }
+        .code-content .function { color: #d2a8ff; }
+        .code-content .string { color: #a5d6ff; }
+        .code-content .number { color: #79c0ff; }
+        .code-content .variable { color: #ffa657; }
+        .code-content .property { color: #7ee787; }
+        .code-content .operator { color: #ff7b72; }
+        .code-content .punctuation { color: #e6edf3; }
+
+        /* Floating elements */
+        .float-card {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(26, 26, 36, 0.95) 0%, rgba(18, 18, 26, 0.95) 100%);
+            border: 1px solid rgba(48, 54, 61, 0.8);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 0.85rem;
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            animation: float 4s ease-in-out infinite;
+            backdrop-filter: blur(12px);
+        }
+
+        .float-card-1 {
+            top: -20px;
+            right: -30px;
+            animation-delay: 0s;
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .float-card-2 {
+            bottom: 40px;
+            left: -40px;
+            animation-delay: 1.3s;
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .float-card-3 {
+            bottom: -20px;
+            right: 40px;
+            animation-delay: 2.6s;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .float-card .label {
+            color: #8b949e;
+            font-size: 0.7rem;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+
+        .float-card .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .float-card-1 .value {
+            color: var(--accent);
+        }
+
+        .float-card-2 .value {
+            color: var(--purple);
+        }
+
+        .float-card-3 .value {
+            color: var(--blue);
+        }
+
+        /* Features Section */
+        .features {
+            background: linear-gradient(180deg, transparent 0%, rgba(34, 197, 94, 0.02) 100%);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-label {
+            display: inline-block;
+            padding: 6px 14px;
+            background: var(--accent-glow);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-description {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-glow);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Algorithms Section */
+        .algorithms {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .algo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+        }
+
+        .algo-table th,
+        .algo-table td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .algo-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .algo-table tr:hover td {
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .algo-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .algo-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: var(--accent-glow);
+            border-radius: 100px;
+            font-size: 0.75rem;
+            color: var(--accent);
+            margin-left: 8px;
+        }
+
+        .stars {
+            color: var(--orange);
+            letter-spacing: 2px;
+        }
+
+        /* Use Cases */
+        .use-cases-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .use-case-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            display: flex;
+            gap: 20px;
+            transition: all 0.3s;
+        }
+
+        .use-case-card:hover {
+            border-color: var(--purple);
+            transform: translateY(-2px);
+        }
+
+        .use-case-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--purple), var(--pink));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            flex-shrink: 0;
+        }
+
+        .use-case-content h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .use-case-content p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .use-case-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            padding: 4px 10px;
+            background: rgba(168, 85, 247, 0.1);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--purple);
+        }
+
+        /* Code Examples */
+        .examples {
+            background: linear-gradient(180deg, rgba(168, 85, 247, 0.02) 0%, transparent 100%);
+        }
+
+        .example-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .example-tab {
+            padding: 14px 28px;
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .example-tab:hover {
+            color: var(--text);
+        }
+
+        .example-tab.active {
+            background: linear-gradient(135deg, var(--accent) 0%, #4ade80 100%);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+
+        .example-content {
+            display: none;
+        }
+
+        .example-content.active {
+            display: block;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .example-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 0.7fr;
+            gap: 30px;
+            align-items: stretch;
+        }
+
+        /* Code Editor */
+        .code-editor {
+            background: #0d1117;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                0 25px 50px -12px rgba(0, 0, 0, 0.6),
+                0 0 100px rgba(34, 197, 94, 0.05);
+        }
+
+        .code-editor-header {
+            padding: 16px 20px;
+            background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .code-editor-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .window-controls span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .window-controls span:nth-child(1) { background: #ff5f57; }
+        .window-controls span:nth-child(2) { background: #febc2e; }
+        .window-controls span:nth-child(3) { background: #28c840; }
+
+        .code-editor:hover .window-controls span:nth-child(1) { box-shadow: 0 0 8px #ff5f57; }
+        .code-editor:hover .window-controls span:nth-child(2) { box-shadow: 0 0 8px #febc2e; }
+        .code-editor:hover .window-controls span:nth-child(3) { box-shadow: 0 0 8px #28c840; }
+
+        .file-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: #0d1117;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+        }
+
+        .file-tab-icon {
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #f7df1e 0%, #f0d000 100%);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .file-tab-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #e6edf3;
+            font-weight: 500;
+        }
+
+        .copy-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            color: #8b949e;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e6edf3;
+            border-color: #8b949e;
+        }
+
+        .copy-btn.copied {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .code-editor-body {
+            display: flex;
+            max-height: 420px;
+            overflow: auto;
+        }
+
+        .line-numbers {
+            padding: 24px 0;
+            text-align: right;
+            user-select: none;
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid #21262d;
+            position: sticky;
+            left: 0;
+        }
+
+        .line-numbers span {
+            display: block;
+            padding: 0 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.75;
+            color: #484f58;
+        }
+
+        .code-editor pre {
+            padding: 24px;
+            padding-left: 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.75;
+            margin: 0;
+            flex: 1;
+            overflow-x: auto;
+        }
+
+        .code-editor pre code {
+            display: block;
+            color: #e6edf3;
+        }
+
+        /* GitHub-style syntax highlighting */
+        .code-editor .keyword { color: #ff7b72; }
+        .code-editor .string { color: #a5d6ff; }
+        .code-editor .number { color: #79c0ff; }
+        .code-editor .comment { color: #8b949e; font-style: italic; }
+        .code-editor .function, .code-editor .method { color: #d2a8ff; }
+        .code-editor .variable { color: #ffa657; }
+        .code-editor .property { color: #7ee787; }
+        .code-editor .operator { color: #ff7b72; }
+        .code-editor .class { color: #ffa657; }
+        .code-editor .punctuation { color: #e6edf3; }
+
+        /* Output Panel */
+        .output-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-panel-header {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .output-panel-header .terminal-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent) 0%, #4ade80 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .output-panel-header .title-group h4 {
+            font-size: 0.95rem;
+            color: var(--text);
+            font-weight: 600;
+            margin: 0 0 2px 0;
+        }
+
+        .output-panel-header .title-group span {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .output-panel-body {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .output-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.25s;
+        }
+
+        .output-row:hover {
+            background: rgba(34, 197, 94, 0.05);
+            border-color: rgba(34, 197, 94, 0.2);
+            transform: translateX(4px);
+        }
+
+        .output-row .row-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .output-row .row-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .output-row .row-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .output-row .row-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .output-row .row-value .hl { color: var(--accent); font-weight: 700; }
+        .output-row .row-value .dim { color: var(--text-muted); }
+
+        .output-row .row-badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .row-badge.common { background: rgba(161, 161, 170, 0.15); color: #a1a1aa; }
+        .row-badge.uncommon { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        .row-badge.rare { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .row-badge.epic { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+        .row-badge.legendary { background: rgba(249, 115, 22, 0.15); color: #fb923c; }
+        .row-badge.success { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        .row-badge.miss { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .row-badge.crit { background: linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%); color: #fbbf24; }
+
+        .output-footer {
+            padding: 14px 20px;
+            background: rgba(34, 197, 94, 0.05);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .output-footer .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+        }
+
+        .output-footer span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .output-footer strong {
+            color: var(--accent);
+        }
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .output-note svg {
+            flex-shrink: 0;
+        }
+
+        /* Interactive Demo */
+        .demo-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-top: 40px;
+        }
+
+        .demo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .demo-input {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .demo-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .demo-select {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: var(--text);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .demo-output {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+        }
+
+        .demo-value {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .demo-value .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .demo-value .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Noise Visualization */
+        .noise-demo {
+            margin-top: 24px;
+        }
+
+        .noise-canvas {
+            width: 100%;
+            height: 200px;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            display: block;
+        }
+
+        /* Installation */
+        .installation {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .install-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .install-option {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .install-option h3 {
+            font-size: 1rem;
+            margin-bottom: 16px;
+            color: var(--text-muted);
+        }
+
+        .install-command {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .install-copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .install-copy-btn:hover {
+            color: var(--accent);
+        }
+
+        /* CTA Section */
+        .cta {
+            text-align: center;
+            padding: 120px 0;
+        }
+
+        .cta h2 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .cta p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 0;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text);
+        }
+
+        .footer-copy {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-description {
+                margin: 0 auto 32px;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .hero-stats {
+                justify-content: center;
+            }
+
+            .hero-visual {
+                max-width: 600px;
+                margin: 40px auto 0;
+            }
+
+            .float-card {
+                display: none;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .use-cases-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .example-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .install-options {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .algo-table {
+                font-size: 0.85rem;
+            }
+
+            .algo-table th,
+            .algo-table td {
+                padding: 12px;
+            }
+
+            .cta h2 {
+                font-size: 2rem;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .example-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .code-editor-body {
+                flex-direction: column;
+            }
+            
+            .line-numbers {
+                display: none;
+            }
+            
+            .code-line-numbers {
+                display: none;
+            }
+            
+            .code-body {
+                flex-direction: column;
+            }
+            
+            .example-tabs {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .example-tab {
+                flex: 1;
+                text-align: center;
+                padding: 12px 16px;
+                font-size: 0.8rem;
+            }
+            
+            .code-editor-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+            
+            .copy-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <a href="#" class="logo">
+                <span class="logo-icon">🌱</span>
+                SeedForge
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#algorithms">Algorithms</a></li>
+                <li><a href="#examples">Examples</a></li>
+                <li><a href="#demo">Demo</a></li>
+            </ul>
+            <div class="nav-cta">
+                <a href="https://github.com/ClearanceClarence/SeedForge" class="btn btn-secondary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    GitHub
+                </a>
+                <a href="#installation" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <div class="hero-badge">
+                        <span>✨</span>
+                        <span>v1.0 — Now Available</span>
+                    </div>
+                    <h1>Reproducible<br>Randomness for<br><span>JavaScript</span></h1>
+                    <p class="hero-description">
+                        Advanced seedable PRNG library with multiple algorithms, statistical distributions, and noise generators. Perfect for procedural generation, games, and simulations.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="#installation" class="btn btn-primary btn-large">
+                            Get Started
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                        <a href="#demo" class="btn btn-secondary btn-large">
+                            Try Demo
+                        </a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <div class="stat-value">6</div>
+                            <div class="stat-label">PRNG Algorithms</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">11</div>
+                            <div class="stat-label">Distributions</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">0</div>
+                            <div class="stat-label">Dependencies</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="code-window">
+                        <div class="code-header">
+                            <div class="code-dots">
+                                <div class="code-dot red"></div>
+                                <div class="code-dot yellow"></div>
+                                <div class="code-dot green"></div>
+                            </div>
+                            <div class="code-title">
+                                <div class="code-title-icon">JS</div>
+                                <span class="code-title-text">example.js</span>
+                            </div>
+                        </div>
+                        <div class="code-body">
+                            <div class="code-line-numbers">
+                                <span>1</span>
+                                <span>2</span>
+                                <span>3</span>
+                                <span>4</span>
+                                <span>5</span>
+                                <span>6</span>
+                                <span>7</span>
+                                <span>8</span>
+                                <span>9</span>
+                                <span>10</span>
+                                <span>11</span>
+                            </div>
+                            <div class="code-content">
+<span class="line"><span class="keyword">const</span> <span class="punctuation">{</span> <span class="variable">PRNG</span> <span class="punctuation">}</span> <span class="operator">=</span> <span class="function">require</span><span class="punctuation">(</span><span class="string">'seedforge'</span><span class="punctuation">);</span></span>
+<span class="line"></span>
+<span class="line"><span class="comment">// Create a seeded generator</span></span>
+<span class="line"><span class="keyword">const</span> <span class="variable">rng</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="function">PRNG</span><span class="punctuation">(</span><span class="string">'world-42'</span><span class="punctuation">);</span></span>
+<span class="line"></span>
+<span class="line"><span class="comment">// Generate deterministic values</span></span>
+<span class="line"><span class="variable">rng</span><span class="punctuation">.</span><span class="function">random</span><span class="punctuation">();</span>       <span class="comment">// 0.7364291</span></span>
+<span class="line"><span class="variable">rng</span><span class="punctuation">.</span><span class="function">int</span><span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">100</span><span class="punctuation">);</span>    <span class="comment">// 42</span></span>
+<span class="line"><span class="variable">rng</span><span class="punctuation">.</span><span class="function">normal</span><span class="punctuation">(</span><span class="number">100</span><span class="punctuation">,</span> <span class="number">15</span><span class="punctuation">);</span> <span class="comment">// 94.28</span></span>
+<span class="line"><span class="variable">rng</span><span class="punctuation">.</span><span class="function">pick</span><span class="punctuation">([</span><span class="string">'a'</span><span class="punctuation">,</span><span class="string">'b'</span><span class="punctuation">,</span><span class="string">'c'</span><span class="punctuation">]);</span> <span class="comment">// 'b'</span></span>
+<span class="line"><span class="comment">// Same seed = same results!</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="float-card float-card-1">
+                        <div class="label">Seed</div>
+                        <div class="value">"world-42"</div>
+                    </div>
+                    <div class="float-card float-card-2">
+                        <div class="label">Algorithm</div>
+                        <div class="value">xoshiro128**</div>
+                    </div>
+                    <div class="float-card float-card-3">
+                        <div class="label">Output</div>
+                        <div class="value">0.7364291</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Features</span>
+                <h2 class="section-title">Everything You Need</h2>
+                <p class="section-description">
+                    A complete toolkit for procedural generation, game development, and statistical simulations.
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎲</div>
+                    <h3>6 PRNG Algorithms</h3>
+                    <p>Choose from Xoshiro128**, PCG32, SFC32, Mulberry32, Xorshift128, and LCG based on your speed and quality needs.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Statistical Distributions</h3>
+                    <p>Normal, Exponential, Poisson, Pareto, Beta, Gamma, Binomial, Triangular, and more for realistic data generation.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌊</div>
+                    <h3>Noise Generators</h3>
+                    <p>Simplex and Value noise with fractal Brownian motion (fBm) for terrain, textures, and organic patterns.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <h3>Array Utilities</h3>
+                    <p>Shuffle, pick, sample, and weighted selection for loot tables, card games, and random content.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📐</div>
+                    <h3>Geometric Utilities</h3>
+                    <p>Random points in circles, spheres, rectangles, and boxes for spawn systems and spatial distribution.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3>State Management</h3>
+                    <p>Save, restore, clone, and fork generators for game saves, replays, and parallel generation streams.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Algorithms Section -->
+    <section class="algorithms" id="algorithms">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Algorithms</span>
+                <h2 class="section-title">Choose Your Engine</h2>
+                <p class="section-description">
+                    Six battle-tested algorithms to match your performance and quality requirements.
+                </p>
+            </div>
+            <table class="algo-table">
+                <thead>
+                    <tr>
+                        <th>Algorithm</th>
+                        <th>Period</th>
+                        <th>Speed</th>
+                        <th>Quality</th>
+                        <th>Best For</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="algo-name">sfc32</span><span class="algo-badge">Recommended</span></td>
+                        <td>~2¹²⁸</td>
+                        <td><span class="stars">★★★★★</span></td>
+                        <td><span class="stars">★★★★★</span></td>
+                        <td>Best all-around choice</td>
+                    </tr>
+                    <tr>
+                        <td><span class="algo-name">xoshiro128**</span><span class="algo-badge">Default</span></td>
+                        <td>2¹²⁸-1</td>
+                        <td><span class="stars">★★★★☆</span></td>
+                        <td><span class="stars">★★★★★</span></td>
+                        <td>General purpose</td>
+                    </tr>
+                    <tr>
+                        <td><span class="algo-name">pcg32</span></td>
+                        <td>2⁶⁴</td>
+                        <td><span class="stars">★★★★☆</span></td>
+                        <td><span class="stars">★★★★★</span></td>
+                        <td>Simulations, statistics</td>
+                    </tr>
+                    <tr>
+                        <td><span class="algo-name">mulberry32</span></td>
+                        <td>~2³²</td>
+                        <td><span class="stars">★★★★★</span></td>
+                        <td><span class="stars">★★★☆☆</span></td>
+                        <td>Maximum speed</td>
+                    </tr>
+                    <tr>
+                        <td><span class="algo-name">xorshift128</span></td>
+                        <td>2¹²⁸-1</td>
+                        <td><span class="stars">★★★☆☆</span></td>
+                        <td><span class="stars">★★★★☆</span></td>
+                        <td>Xorshift compatibility</td>
+                    </tr>
+                    <tr>
+                        <td><span class="algo-name">lcg</span></td>
+                        <td>2³²</td>
+                        <td><span class="stars">★★★★★</span></td>
+                        <td><span class="stars">★★☆☆☆</span></td>
+                        <td>Legacy systems</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="use-cases" id="use-cases">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Use Cases</span>
+                <h2 class="section-title">Built for Real Projects</h2>
+                <p class="section-description">
+                    From indie games to scientific simulations, SeedForge powers reproducible randomness.
+                </p>
+            </div>
+            <div class="use-cases-grid">
+                <div class="use-case-card">
+                    <div class="use-case-icon">🎮</div>
+                    <div class="use-case-content">
+                        <h3>Game Development</h3>
+                        <p>Procedural worlds, loot tables, enemy spawns, and replay systems that work exactly the same every time.</p>
+                        <div class="use-case-tags">
+                            <span class="tag">Procedural Gen</span>
+                            <span class="tag">Loot Systems</span>
+                            <span class="tag">Replays</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="use-case-card">
+                    <div class="use-case-icon">🗺️</div>
+                    <div class="use-case-content">
+                        <h3>Map & Terrain Generation</h3>
+                        <p>Create infinite, reproducible worlds with noise generators, biomes, rivers, and political boundaries.</p>
+                        <div class="use-case-tags">
+                            <span class="tag">Noise</span>
+                            <span class="tag">Heightmaps</span>
+                            <span class="tag">Biomes</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="use-case-card">
+                    <div class="use-case-icon">🧪</div>
+                    <div class="use-case-content">
+                        <h3>Scientific Simulations</h3>
+                        <p>Monte Carlo methods, statistical sampling, and reproducible experiments with proper distributions.</p>
+                        <div class="use-case-tags">
+                            <span class="tag">Monte Carlo</span>
+                            <span class="tag">Distributions</span>
+                            <span class="tag">Sampling</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="use-case-card">
+                    <div class="use-case-icon">🎨</div>
+                    <div class="use-case-content">
+                        <h3>Generative Art</h3>
+                        <p>Create unique, reproducible artworks with consistent color palettes, patterns, and compositions.</p>
+                        <div class="use-case-tags">
+                            <span class="tag">Colors</span>
+                            <span class="tag">Patterns</span>
+                            <span class="tag">NFTs</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Demo Section -->
+    <section class="examples" id="demo">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Interactive</span>
+                <h2 class="section-title">Try It Live</h2>
+                <p class="section-description">
+                    See SeedForge in action. Change the seed and watch the values update deterministically.
+                </p>
+            </div>
+            
+            <div class="demo-container">
+                <div class="demo-header">
+                    <h3>🎲 Random Value Generator</h3>
+                    <div class="demo-controls">
+                        <input type="text" class="demo-input" id="demoSeed" value="my-seed" placeholder="Enter seed...">
+                        <select class="demo-select" id="demoAlgo">
+                            <option value="xoshiro128">xoshiro128**</option>
+                            <option value="sfc32">sfc32</option>
+                            <option value="pcg32">pcg32</option>
+                            <option value="mulberry32">mulberry32</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="generateDemo()">Generate</button>
+                    </div>
+                </div>
+                <div class="demo-output" id="demoOutput">
+                    <div class="demo-value">
+                        <div class="label">random()</div>
+                        <div class="value" id="demoRandom">0.7364291</div>
+                    </div>
+                    <div class="demo-value">
+                        <div class="label">int(1, 100)</div>
+                        <div class="value" id="demoInt">42</div>
+                    </div>
+                    <div class="demo-value">
+                        <div class="label">normal(100, 15)</div>
+                        <div class="value" id="demoNormal">94.28</div>
+                    </div>
+                    <div class="demo-value">
+                        <div class="label">bool(0.5)</div>
+                        <div class="value" id="demoBool">true</div>
+                    </div>
+                    <div class="demo-value">
+                        <div class="label">pick(['🗡️','🛡️','🧪'])</div>
+                        <div class="value" id="demoPick">🗡️</div>
+                    </div>
+                    <div class="demo-value">
+                        <div class="label">color()</div>
+                        <div class="value" id="demoColor" style="padding: 4px 12px; border-radius: 4px;">#7a3f9c</div>
+                    </div>
+                </div>
+                
+                <div class="noise-demo">
+                    <h4 style="margin-bottom: 12px; color: var(--text-muted);">Simplex Noise Visualization</h4>
+                    <canvas id="noiseCanvas" class="noise-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Examples Section -->
+    <section class="examples" id="examples">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Examples</span>
+                <h2 class="section-title">Copy & Paste Ready</h2>
+                <p class="section-description">
+                    Real-world examples to get you started in minutes.
+                </p>
+            </div>
+            
+            <div class="example-tabs">
+                <button class="example-tab active" onclick="showExample('loot')">🎁 Loot Table</button>
+                <button class="example-tab" onclick="showExample('terrain')">🗺️ Terrain</button>
+                <button class="example-tab" onclick="showExample('names')">👤 Names</button>
+                <button class="example-tab" onclick="showExample('dice')">🎲 Dice</button>
+            </div>
+
+            <div class="example-content active" id="example-loot">
+                <div class="example-grid">
+                    <div class="code-editor">
+                        <div class="code-editor-header">
+                            <div class="code-editor-left">
+                                <div class="window-controls">
+                                    <span></span><span></span><span></span>
+                                </div>
+                                <div class="file-tab">
+                                    <div class="file-tab-icon">JS</div>
+                                    <span class="file-tab-name">loot-system.js</span>
+                                </div>
+                            </div>
+                            <button class="copy-btn" onclick="copyCode(this, 'loot')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                Copy code
+                            </button>
+                        </div>
+                        <div class="code-editor-body">
+                            <div class="line-numbers">
+                                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
+                            </div>
+                            <pre><code><span class="keyword">const</span> <span class="variable">rng</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="function">PRNG</span><span class="punctuation">(</span><span class="string">'chest-42'</span><span class="punctuation">)</span><span class="punctuation">;</span>
+
+<span class="keyword">const</span> <span class="variable">lootTable</span> <span class="operator">=</span> <span class="punctuation">{</span>
+    <span class="property">common</span><span class="punctuation">:</span> <span class="number">60</span><span class="punctuation">,</span>
+    <span class="property">uncommon</span><span class="punctuation">:</span> <span class="number">25</span><span class="punctuation">,</span>
+    <span class="property">rare</span><span class="punctuation">:</span> <span class="number">10</span><span class="punctuation">,</span>
+    <span class="property">legendary</span><span class="punctuation">:</span> <span class="number">5</span>
+<span class="punctuation">}</span><span class="punctuation">;</span>
+
+<span class="comment">// Weighted random selection</span>
+<span class="keyword">const</span> <span class="variable">rarity</span> <span class="operator">=</span> <span class="variable">rng</span><span class="punctuation">.</span><span class="function">weightedPickObject</span><span class="punctuation">(</span><span class="variable">lootTable</span><span class="punctuation">)</span><span class="punctuation">;</span>
+
+<span class="comment">// Gold with Pareto distribution</span>
+<span class="keyword">const</span> <span class="variable">gold</span> <span class="operator">=</span> <span class="class">Math</span><span class="punctuation">.</span><span class="function">round</span><span class="punctuation">(</span><span class="variable">rng</span><span class="punctuation">.</span><span class="function">pareto</span><span class="punctuation">(</span><span class="number">1.5</span><span class="punctuation">,</span> <span class="number">10</span><span class="punctuation">))</span><span class="punctuation">;</span></code></pre>
+                        </div>
+                    </div>
+                    <div class="output-panel">
+                        <div class="output-panel-header">
+                            <div class="terminal-icon">📦</div>
+                            <div class="title-group">
+                                <h4>Loot Results</h4>
+                                <span>seed: "chest-42"</span>
+                            </div>
+                        </div>
+                        <div class="output-panel-body">
+                            <div class="output-row">
+                                <div class="row-icon">📦</div>
+                                <div class="row-content">
+                                    <div class="row-label">Chest #1</div>
+                                    <div class="row-value"><span class="hl">18</span> gold</div>
+                                </div>
+                                <span class="row-badge common">Common</span>
+                            </div>
+                            <div class="output-row">
+                                <div class="row-icon">📦</div>
+                                <div class="row-content">
+                                    <div class="row-label">Chest #2</div>
+                                    <div class="row-value"><span class="hl">42</span> gold</div>
+                                </div>
+                                <span class="row-badge uncommon">Uncommon</span>
+                            </div>
+                            <div class="output-row">
+                                <div class="row-icon">📦</div>
+                                <div class="row-content">
+                                    <div class="row-label">Chest #3</div>
+                                    <div class="row-value"><span class="hl">156</span> gold</div>
+                                </div>
+                                <span class="row-badge rare">Rare</span>
+                            </div>
+                            <div class="output-row">
+                                <div class="row-icon">📦</div>
+                                <div class="row-content">
+                                    <div class="row-label">Chest #4</div>
+                                    <div class="row-value"><span class="hl">847</span> gold</div>
+                                </div>
+                                <span class="row-badge legendary">Legendary</span>
+                            </div>
+                        </div>
+                        <div class="output-footer">
+                            <div class="pulse-dot"></div>
+                            <span><strong>Deterministic:</strong> Same seed → same results</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="example-content" id="example-terrain">
+                <div class="example-grid">
+                    <div class="code-editor">
+                        <div class="code-editor-header">
+                            <div class="code-editor-left">
+                                <div class="window-controls">
+                                    <span></span><span></span><span></span>
+                                </div>
+                                <div class="file-tab">
+                                    <div class="file-tab-icon">JS</div>
+                                    <span class="file-tab-name">terrain-gen.js</span>
+                                </div>
+                            </div>
+                            <button class="copy-btn" onclick="copyCode(this, 'terrain')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                Copy code
+                            </button>
+                        </div>
+                        <div class="code-editor-body">
+                            <div class="line-numbers">
+                                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span>
+                            </div>
+                            <pre><code><span class="keyword">const</span> <span class="punctuation">{</span> <span class="class">Noise</span> <span class="punctuation">}</span> <span class="operator">=</span> <span class="function">require</span><span class="punctuation">(</span><span class="string">'seedforge'</span><span class="punctuation">)</span><span class="punctuation">;</span>
+
+<span class="keyword">const</span> <span class="variable">noise</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="class">Noise</span><span class="punctuation">.</span><span class="class">SimplexNoise</span><span class="punctuation">(</span><span class="string">'world-1'</span><span class="punctuation">)</span><span class="punctuation">;</span>
+
+<span class="keyword">function</span> <span class="function">getHeight</span><span class="punctuation">(</span><span class="variable">x</span><span class="punctuation">,</span> <span class="variable">y</span><span class="punctuation">)</span> <span class="punctuation">{</span>
+    <span class="comment">// Fractal Brownian Motion</span>
+    <span class="keyword">let</span> <span class="variable">h</span> <span class="operator">=</span> <span class="variable">noise</span><span class="punctuation">.</span><span class="function">fbm</span><span class="punctuation">(</span>
+        <span class="variable">x</span> <span class="operator">*</span> <span class="number">0.02</span><span class="punctuation">,</span>   <span class="comment">// scale</span>
+        <span class="variable">y</span> <span class="operator">*</span> <span class="number">0.02</span><span class="punctuation">,</span>
+        <span class="keyword">null</span><span class="punctuation">,</span>
+        <span class="number">6</span><span class="punctuation">,</span>         <span class="comment">// octaves</span>
+        <span class="number">2.0</span><span class="punctuation">,</span>       <span class="comment">// lacunarity</span>
+        <span class="number">0.5</span>        <span class="comment">// persistence</span>
+    <span class="punctuation">)</span><span class="punctuation">;</span>
+    <span class="keyword">return</span> <span class="punctuation">(</span><span class="variable">h</span> <span class="operator">+</span> <span class="number">1</span><span class="punctuation">)</span> <span class="operator">/</span> <span class="number">2</span><span class="punctuation">;</span>
+<span class="punctuation">}</span></code></pre>
+                        </div>
+                    </div>
+                    <div class="output-panel">
+                        <div class="output-panel-header">
+                            <div class="terminal-icon">🗺️</div>
+                            <div class="title-group">
+                                <h4>Generated Terrain</h4>
+                                <span>seed: "world-1"</span>
+                            </div>
+                        </div>
+                        <div class="output-panel-body" style="padding: 20px;">
+                            <canvas id="terrainCanvas" width="320" height="220" style="width: 100%; border-radius: 12px; background: #000;"></canvas>
+                        </div>
+                        <div class="output-footer">
+                            <div class="pulse-dot"></div>
+                            <span><strong>6-octave fBm</strong> for natural terrain</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="example-content" id="example-names">
+                <div class="example-grid">
+                    <div class="code-editor">
+                        <div class="code-editor-header">
+                            <div class="code-editor-left">
+                                <div class="window-controls">
+                                    <span></span><span></span><span></span>
+                                </div>
+                                <div class="file-tab">
+                                    <div class="file-tab-icon">JS</div>
+                                    <span class="file-tab-name">name-generator.js</span>
+                                </div>
+                            </div>
+                            <button class="copy-btn" onclick="copyCode(this, 'names')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                Copy code
+                            </button>
+                        </div>
+                        <div class="code-editor-body">
+                            <div class="line-numbers">
+                                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
+                            </div>
+                            <pre><code><span class="keyword">const</span> <span class="variable">rng</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="function">PRNG</span><span class="punctuation">(</span><span class="string">'village-npcs'</span><span class="punctuation">)</span><span class="punctuation">;</span>
+
+<span class="keyword">const</span> <span class="variable">prefixes</span> <span class="operator">=</span> <span class="punctuation">[</span><span class="string">'Ael'</span><span class="punctuation">,</span> <span class="string">'Bran'</span><span class="punctuation">,</span> <span class="string">'Dor'</span><span class="punctuation">,</span> <span class="string">'Fen'</span><span class="punctuation">]</span><span class="punctuation">;</span>
+<span class="keyword">const</span> <span class="variable">suffixes</span> <span class="operator">=</span> <span class="punctuation">[</span><span class="string">'dric'</span><span class="punctuation">,</span> <span class="string">'wen'</span><span class="punctuation">,</span> <span class="string">'mir'</span><span class="punctuation">,</span> <span class="string">'eth'</span><span class="punctuation">]</span><span class="punctuation">;</span>
+<span class="keyword">const</span> <span class="variable">titles</span> <span class="operator">=</span> <span class="punctuation">[</span><span class="string">'the Brave'</span><span class="punctuation">,</span> <span class="string">'the Wise'</span><span class="punctuation">]</span><span class="punctuation">;</span>
+
+<span class="keyword">function</span> <span class="function">generateNPC</span><span class="punctuation">()</span> <span class="punctuation">{</span>
+    <span class="keyword">let</span> <span class="variable">name</span> <span class="operator">=</span> <span class="variable">rng</span><span class="punctuation">.</span><span class="function">pick</span><span class="punctuation">(</span><span class="variable">prefixes</span><span class="punctuation">)</span>
+             <span class="operator">+</span> <span class="variable">rng</span><span class="punctuation">.</span><span class="function">pick</span><span class="punctuation">(</span><span class="variable">suffixes</span><span class="punctuation">)</span><span class="punctuation">;</span>
+    
+    <span class="keyword">if</span> <span class="punctuation">(</span><span class="variable">rng</span><span class="punctuation">.</span><span class="function">bool</span><span class="punctuation">(</span><span class="number">0.2</span><span class="punctuation">))</span> <span class="punctuation">{</span>
+        <span class="variable">name</span> <span class="operator">+=</span> <span class="string">' '</span> <span class="operator">+</span> <span class="variable">rng</span><span class="punctuation">.</span><span class="function">pick</span><span class="punctuation">(</span><span class="variable">titles</span><span class="punctuation">)</span><span class="punctuation">;</span>
+    <span class="punctuation">}</span>
+    <span class="keyword">return</span> <span class="variable">name</span><span class="punctuation">;</span>
+<span class="punctuation">}</span></code></pre>
+                        </div>
+                    </div>
+                    <div class="output-panel">
+                        <div class="output-panel-header">
+                            <div class="terminal-icon">👥</div>
+                            <div class="title-group">
+                                <h4>Generated NPCs</h4>
+                                <span>seed: "village-npcs"</span>
+                            </div>
+                        </div>
+                        <div class="output-panel-body">
+                            <div class="output-row">
+                                <div class="row-icon">⚔️</div>
+                                <div class="row-content">
+                                    <div class="row-label">Guard</div>
+                                    <div class="row-value">Aelwen</div>
+                                </div>
+                                <span class="row-badge common">Level 3</span>
+                            </div>
+                            <div class="output-row">
+                                <div class="row-icon">🛡️</div>
+                                <div class="row-content">
+                                    <div class="row-label">Knight</div>
+                                    <div class="row-value">Dormir <span class="hl">the Brave</span></div>
+                                </div>
+                                <span class="row-badge rare">Level 12</span>
+                            </div>
+                            <div class="output-row">
+                                <div class="row-icon">🪙</div>
+                                <div class="row-content">
+                                    <div class="row-label">Merchant</div>
+                                    <div class="row-value">Fendric</div>
+                                </div>
+                                <span class="row-badge common">Level 5</span>
+                            </div>
+                            <div class="output-row">
+                                <div class="row-icon">🗡️</div>
+                                <div class="row-content">
+                                    <div class="row-label">Assassin</div>
+                                    <div class="row-value">Galeth <span class="hl">Shadowbane</span></div>
+                                </div>
+                                <span class="row-badge epic">Level 18</span>
+                            </div>
+                        </div>
+                        <div class="output-footer">
+                            <div class="pulse-dot"></div>
+                            <span><strong>20% chance</strong> for title suffix</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="example-content" id="example-dice">
+                <div class="example-grid">
+                    <div class="code-editor">
+                        <div class="code-editor-header">
+                            <div class="code-editor-left">
+                                <div class="window-controls">
+                                    <span></span><span></span><span></span>
+                                </div>
+                                <div class="file-tab">
+                                    <div class="file-tab-icon">JS</div>
+                                    <span class="file-tab-name">dice-roller.js</span>
+                                </div>
+                            </div>
+                            <button class="copy-btn" onclick="copyCode(this, 'dice')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                Copy code
+                            </button>
+                        </div>
+                        <div class="code-editor-body">
+                            <div class="line-numbers">
+                                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
+                            </div>
+                            <pre><code><span class="keyword">const</span> <span class="variable">rng</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="function">PRNG</span><span class="punctuation">(</span><span class="string">'combat-42'</span><span class="punctuation">)</span><span class="punctuation">;</span>
+
+<span class="keyword">function</span> <span class="function">roll</span><span class="punctuation">(</span><span class="variable">count</span><span class="punctuation">,</span> <span class="variable">sides</span><span class="punctuation">)</span> <span class="punctuation">{</span>
+    <span class="keyword">const</span> <span class="variable">rolls</span> <span class="operator">=</span> <span class="punctuation">[]</span><span class="punctuation">;</span>
+    <span class="keyword">for</span> <span class="punctuation">(</span><span class="keyword">let</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span><span class="punctuation">;</span> <span class="variable">i</span> <span class="operator"><</span> <span class="variable">count</span><span class="punctuation">;</span> <span class="variable">i</span><span class="operator">++</span><span class="punctuation">)</span> <span class="punctuation">{</span>
+        <span class="variable">rolls</span><span class="punctuation">.</span><span class="function">push</span><span class="punctuation">(</span><span class="variable">rng</span><span class="punctuation">.</span><span class="function">int</span><span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="variable">sides</span><span class="punctuation">))</span><span class="punctuation">;</span>
+    <span class="punctuation">}</span>
+    <span class="keyword">return</span> <span class="punctuation">{</span>
+        <span class="property">rolls</span><span class="punctuation">,</span>
+        <span class="property">total</span><span class="punctuation">:</span> <span class="variable">rolls</span><span class="punctuation">.</span><span class="function">reduce</span><span class="punctuation">((</span><span class="variable">a</span><span class="punctuation">,</span><span class="variable">b</span><span class="punctuation">)</span> <span class="operator">=></span> <span class="variable">a</span><span class="operator">+</span><span class="variable">b</span><span class="punctuation">,</span> <span class="number">0</span><span class="punctuation">)</span>
+    <span class="punctuation">}</span><span class="punctuation">;</span>
+<span class="punctuation">}</span>
+
+<span class="function">roll</span><span class="punctuation">(</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">20</span><span class="punctuation">)</span><span class="punctuation">;</span>  <span class="comment">// Attack roll</span>
+<span class="function">roll</span><span class="punctuation">(</span><span class="number">2</span><span class="punctuation">,</span> <span class="number">6</span><span class="punctuation">)</span><span class="punctuation">;</span>   <span class="comment">// Damage roll</span></code></pre>
+                        </div>
+                    </div>
+                    <div class="output-panel">
+                        <div class="output-panel-header">
+                            <div class="terminal-icon">🎲</div>
+                            <div class="title-group">
+                                <h4>Combat Rolls</h4>
+                                <span>seed: "combat-42"</span>
+                            </div>
+                        </div>
+                        <div class="output-panel-body">
+                            <div class="output-row">
+                                <div class="row-icon">🎯</div>
+                                <div class="row-content">
+                                    <div class="row-label">Attack Roll (1d20)</div>
+                                    <div class="row-value"><span class="hl">17</span></div>
+                                </div>
+                                <span class="row-badge success">Hit!</span>
+                            </div>
+                            <div class="output-row">
+                                <div class="row-icon">⚔️</div>
+                                <div class="row-content">
+                                    <div class="row-label">Damage Roll (2d6)</div>
+                                    <div class="row-value"><span class="dim">[4, 6]</span> = <span class="hl">10</span></div>
+                                </div>
+                            </div>
+                            <div class="output-row">
+                                <div class="row-icon">🛡️</div>
+                                <div class="row-content">
+                                    <div class="row-label">Defense Roll (1d20)</div>
+                                    <div class="row-value"><span class="hl">8</span></div>
+                                </div>
+                                <span class="row-badge miss">Miss</span>
+                            </div>
+                            <div class="output-row">
+                                <div class="row-icon">💥</div>
+                                <div class="row-content">
+                                    <div class="row-label">Critical Check (1d20)</div>
+                                    <div class="row-value"><span class="hl">20</span></div>
+                                </div>
+                                <span class="row-badge crit">NAT 20!</span>
+                            </div>
+                        </div>
+                        <div class="output-footer">
+                            <div class="pulse-dot"></div>
+                            <span><strong>Perfect</strong> for replay systems</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section class="installation" id="installation">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">Installation</span>
+                <h2 class="section-title">Get Started in Seconds</h2>
+                <p class="section-description">
+                    Zero dependencies. Works everywhere JavaScript runs.
+                </p>
+            </div>
+            <div class="install-options">
+                <div class="install-option">
+                    <h3>npm</h3>
+                    <div class="install-command">
+                        <span>npm install seedforge</span>
+                        <button class="install-copy-btn" onclick="copyText('npm install seedforge')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="install-option">
+                    <h3>CDN</h3>
+                    <div class="install-command">
+                        <span style="font-size: 0.75rem;">unpkg.com/seedforge</span>
+                        <button class="install-copy-btn" onclick="copyText('https://unpkg.com/seedforge/dist/seedforge.js')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="install-option">
+                    <h3>Download</h3>
+                    <div class="install-command">
+                        <span>seedforge.js (46KB)</span>
+                        <a href="https://github.com/ClearanceClarence/SeedForge/releases" style="color: var(--text-muted);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>Start Building with<br>Reproducible Randomness</h2>
+            <p>
+                Join developers using SeedForge for games, simulations, and procedural content. MIT licensed, forever free.
+            </p>
+            <div class="cta-buttons">
+                <a href="https://github.com/ClearanceClarence/SeedForge" class="btn btn-primary btn-large">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    View on GitHub
+                </a>
+                <a href="docs.html" class="btn btn-secondary btn-large">
+                    Read Documentation
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="https://github.com/ClearanceClarence/SeedForge">GitHub</a>
+                    <a href="docs.html">Documentation</a>
+                    <a href="https://www.npmjs.com/package/seedforge">npm</a>
+                    <a href="#examples">Examples</a>
+                </div>
+                <div class="footer-copy">
+                    MIT License © 2025 SeedForge
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SeedForge Library (inline for demo) -->
+    <script src="dist/seedforge.js"></script>
+    
+    <script>
+        // Demo functionality
+        function generateDemo() {
+            const seed = document.getElementById('demoSeed').value || 'default';
+            const algo = document.getElementById('demoAlgo').value;
+            
+            const rng = new PRNG.PRNG(seed, algo);
+            
+            document.getElementById('demoRandom').textContent = rng.random().toFixed(7);
+            document.getElementById('demoInt').textContent = rng.int(1, 100);
+            document.getElementById('demoNormal').textContent = rng.normal(100, 15).toFixed(2);
+            document.getElementById('demoBool').textContent = rng.bool(0.5);
+            document.getElementById('demoPick').textContent = rng.pick(['🗡️', '🛡️', '🧪', '📜', '💎']);
+            
+            const color = rng.color();
+            const colorEl = document.getElementById('demoColor');
+            colorEl.textContent = color;
+            colorEl.style.backgroundColor = color;
+            colorEl.style.color = '#fff';
+            
+            // Update noise visualization
+            renderNoise(seed);
+        }
+        
+        function renderNoise(seed) {
+            const canvas = document.getElementById('noiseCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = canvas.offsetWidth * 2;
+            canvas.height = 400;
+            
+            const noise = new PRNG.Noise.SimplexNoise(seed);
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const v = noise.fbm(x * 0.01, y * 0.01, null, 4, 2.0, 0.5);
+                    const c = Math.floor((v + 1) / 2 * 255);
+                    const i = (y * canvas.width + x) * 4;
+                    
+                    // Color gradient based on height
+                    if (c < 100) {
+                        imageData.data[i] = 30;
+                        imageData.data[i + 1] = 60 + c/2;
+                        imageData.data[i + 2] = 120;
+                    } else if (c < 140) {
+                        imageData.data[i] = 34 + (c-100);
+                        imageData.data[i + 1] = 139 + (c-100)/2;
+                        imageData.data[i + 2] = 34;
+                    } else if (c < 200) {
+                        imageData.data[i] = 100 + (c-140);
+                        imageData.data[i + 1] = 100 + (c-140);
+                        imageData.data[i + 2] = 80;
+                    } else {
+                        imageData.data[i] = 240;
+                        imageData.data[i + 1] = 240;
+                        imageData.data[i + 2] = 250;
+                    }
+                    imageData.data[i + 3] = 255;
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+        }
+        
+        // Terrain example canvas
+        function renderTerrainExample() {
+            const canvas = document.getElementById('terrainCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            canvas.width = 280;
+            canvas.height = 180;
+            
+            const noise = new PRNG.Noise.SimplexNoise('world');
+            
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const v = noise.fbm(x * 0.03, y * 0.03, null, 4, 2.0, 0.5);
+                    const c = Math.floor((v + 1) / 2 * 255);
+                    
+                    if (c < 100) {
+                        ctx.fillStyle = `rgb(30, ${60 + c/2}, 120)`;
+                    } else if (c < 140) {
+                        ctx.fillStyle = `rgb(${34 + (c-100)}, ${139 + (c-100)/2}, 34)`;
+                    } else if (c < 200) {
+                        ctx.fillStyle = `rgb(${100 + (c-140)}, ${100 + (c-140)}, 80)`;
+                    } else {
+                        ctx.fillStyle = `rgb(240, 240, 250)`;
+                    }
+                    
+                    ctx.fillRect(x, y, 1, 1);
+                }
+            }
+        }
+        
+        // Example tabs
+        function showExample(name) {
+            document.querySelectorAll('.example-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.example-tab').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById('example-' + name).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (name === 'terrain') {
+                setTimeout(renderTerrainExample, 100);
+            }
+        }
+        
+        // Copy to clipboard
+        function copyText(text) {
+            navigator.clipboard.writeText(text);
+        }
+        
+        // Copy code from examples
+        function copyCode(btn, example) {
+            const codeBlocks = {
+                loot: `const rng = new PRNG('chest-42');
+
+const lootTable = {
+    common: 60,
+    uncommon: 25,
+    rare: 10,
+    legendary: 5
+};
+
+// Weighted random selection
+const rarity = rng.weightedPickObject(lootTable);
+
+// Gold with Pareto distribution (occasional high values)
+const gold = Math.round(rng.pareto(1.5, 10));`,
+                terrain: `const { Noise } = require('seedforge');
+
+const noise = new Noise.SimplexNoise('world-1');
+
+function getHeight(x, y) {
+    // Fractal Brownian Motion for natural terrain
+    let h = noise.fbm(
+        x * 0.02,   // scale
+        y * 0.02,
+        null,
+        6,         // octaves
+        2.0,       // lacunarity
+        0.5        // persistence
+    );
+    return (h + 1) / 2; // normalize 0-1
+}`,
+                names: `const rng = new PRNG('village-npcs');
+
+const prefixes = ['Ael', 'Bran', 'Dor', 'Fen', 'Gal'];
+const suffixes = ['dric', 'wen', 'mir', 'eth', 'ion'];
+const titles = ['the Brave', 'the Wise', 'Shadowbane'];
+
+function generateNPC() {
+    let name = rng.pick(prefixes) + rng.pick(suffixes);
+    
+    // 20% chance for a title
+    if (rng.bool(0.2)) {
+        name += ' ' + rng.pick(titles);
+    }
+    return name;
+}`,
+                dice: `const rng = new PRNG('combat-42');
+
+function roll(count, sides) {
+    const rolls = [];
+    for (let i = 0; i < count; i++) {
+        rolls.push(rng.int(1, sides));
+    }
+    return {
+        rolls,
+        total: rolls.reduce((a, b) => a + b, 0)
+    };
+}
+
+roll(1, 20);  // Attack roll
+roll(2, 6);   // Damage roll`
+            };
+            
+            navigator.clipboard.writeText(codeBlocks[example]);
+            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+            btn.classList.add('copied');
+            
+            setTimeout(() => {
+                btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy code`;
+                btn.classList.remove('copied');
+            }, 2000);
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if PRNG is loaded
+            if (typeof PRNG !== 'undefined') {
+                generateDemo();
+            } else {
+                // Fallback static values if library not loaded
+                console.log('SeedForge not loaded - showing static demo values');
+            }
+        });
+        
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
