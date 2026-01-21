@@ -593,7 +593,7 @@
                 <a href="landing-page.html" class="sidebar-logo">
                     <span>🌱</span>
                     SeedForge
-                    <span class="sidebar-version">v1.0</span>
+                    <span class="sidebar-version">v1.1.0</span>
                 </a>
             </div>
             <nav class="sidebar-nav">
@@ -616,8 +616,13 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Noise</div>
                     <a href="#simplex-noise" class="nav-link">Simplex Noise</a>
+                    <a href="#perlin-noise" class="nav-link">Perlin Noise</a>
                     <a href="#value-noise" class="nav-link">Value Noise</a>
-                    <a href="#fbm" class="nav-link">Fractal Brownian Motion</a>
+                    <a href="#worley-noise" class="nav-link">Worley Noise</a>
+                    <a href="#ridged-noise" class="nav-link">Ridged Noise</a>
+                    <a href="#billowed-noise" class="nav-link">Billowed Noise</a>
+                    <a href="#fbm" class="nav-link">fBm & Turbulence</a>
+                    <a href="#domain-warping" class="nav-link">Domain Warping</a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">Advanced</div>
@@ -923,7 +928,7 @@ rng.<span class="hljs-function">sign</span>();          <span class="hljs-commen
                 <section id="distributions">
                     <h2><a href="#distributions" class="anchor">#</a>Statistical Distributions</h2>
 
-                    <p>SeedForge provides 11 statistical distributions for realistic data generation.</p>
+                    <p>SeedForge provides 17 statistical distributions for realistic data generation.</p>
 
                     <div class="method-card">
                         <div class="method-header">
@@ -1051,9 +1056,39 @@ rng.<span class="hljs-function">sign</span>();          <span class="hljs-commen
                                 <td>Stock prices, sizes</td>
                             </tr>
                             <tr>
+                                <td><code>weibull(λ, k)</code></td>
+                                <td>Weibull distribution</td>
+                                <td>Reliability, survival analysis</td>
+                            </tr>
+                            <tr>
                                 <td><code>cauchy(x0, γ)</code></td>
                                 <td>Cauchy distribution</td>
                                 <td>Heavy-tailed data</td>
+                            </tr>
+                            <tr style="background: rgba(34, 197, 94, 0.1);">
+                                <td><code>zipf(n, s)</code> <span style="color: var(--accent); font-size: 0.7rem;">NEW</span></td>
+                                <td>Zipf/power-law distribution</td>
+                                <td>Word frequencies, rankings</td>
+                            </tr>
+                            <tr style="background: rgba(34, 197, 94, 0.1);">
+                                <td><code>chiSquared(k)</code> <span style="color: var(--accent); font-size: 0.7rem;">NEW</span></td>
+                                <td>Chi-squared distribution</td>
+                                <td>Statistical testing</td>
+                            </tr>
+                            <tr style="background: rgba(34, 197, 94, 0.1);">
+                                <td><code>studentT(df)</code> <span style="color: var(--accent); font-size: 0.7rem;">NEW</span></td>
+                                <td>Student's t-distribution</td>
+                                <td>Small sample statistics</td>
+                            </tr>
+                            <tr style="background: rgba(34, 197, 94, 0.1);">
+                                <td><code>vonMises(μ, κ)</code> <span style="color: var(--accent); font-size: 0.7rem;">NEW</span></td>
+                                <td>Von Mises distribution</td>
+                                <td>Circular/directional data</td>
+                            </tr>
+                            <tr style="background: rgba(34, 197, 94, 0.1);">
+                                <td><code>hypergeometric(N, K, n)</code> <span style="color: var(--accent); font-size: 0.7rem;">NEW</span></td>
+                                <td>Hypergeometric distribution</td>
+                                <td>Sampling without replacement</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1069,8 +1104,14 @@ rng.<span class="hljs-function">pareto</span>(<span class="hljs-number">1.5</spa
 <span class="hljs-comment">// Enemy spawn count</span>
 rng.<span class="hljs-function">poisson</span>(<span class="hljs-number">3</span>);       <span class="hljs-comment">// Average of 3</span>
 
-<span class="hljs-comment">// Task completion percentage</span>
-rng.<span class="hljs-function">beta</span>(<span class="hljs-number">2</span>, <span class="hljs-number">5</span>);        <span class="hljs-comment">// Skewed toward lower values</span></code></pre>
+<span class="hljs-comment">// v1.1.0: Word frequency ranking (Zipf distribution)</span>
+rng.<span class="hljs-function">zipf</span>(<span class="hljs-number">100</span>, <span class="hljs-number">1.0</span>);   <span class="hljs-comment">// Returns 1-100 with power-law frequency</span>
+
+<span class="hljs-comment">// v1.1.0: Wind direction (Von Mises circular distribution)</span>
+rng.<span class="hljs-function">vonMises</span>(<span class="hljs-number">0</span>, <span class="hljs-number">2</span>);   <span class="hljs-comment">// Concentrated around 0 radians (East)</span>
+
+<span class="hljs-comment">// v1.1.0: Card draw probability (Hypergeometric)</span>
+rng.<span class="hljs-function">hypergeometric</span>(<span class="hljs-number">52</span>, <span class="hljs-number">13</span>, <span class="hljs-number">5</span>);  <span class="hljs-comment">// Hearts in 5-card hand</span></code></pre>
                 </section>
 
                 <!-- Array Utilities -->
@@ -1452,11 +1493,91 @@ noise.<span class="hljs-function">noise3D</span>(<span class="hljs-number">0</sp
 noise.<span class="hljs-function">fbm</span>(x, y, z, octaves, lacunarity, persistence);</code></pre>
                 </section>
 
-                <!-- fBm -->
-                <section id="fbm">
-                    <h2><a href="#fbm" class="anchor">#</a>Fractal Brownian Motion</h2>
+                <!-- Perlin Noise (NEW) -->
+                <section id="perlin-noise">
+                    <h2><a href="#perlin-noise" class="anchor">#</a>Perlin Noise <span style="color: var(--accent); font-size: 0.8rem; vertical-align: middle;">NEW in v1.1.0</span></h2>
 
-                    <p>fBm layers multiple octaves of noise for more natural-looking results.</p>
+                    <p>Classic Perlin gradient noise - the original algorithm that started it all.</p>
+
+                    <pre><code><span class="hljs-keyword">const</span> perlin = <span class="hljs-keyword">new</span> Noise.<span class="hljs-function">PerlinNoise</span>(<span class="hljs-string">'seed'</span>);
+
+<span class="hljs-comment">// 2D noise (returns -1 to 1)</span>
+perlin.<span class="hljs-function">noise2D</span>(<span class="hljs-number">1.5</span>, <span class="hljs-number">2.3</span>);     <span class="hljs-comment">// 0.312</span>
+
+<span class="hljs-comment">// 3D noise</span>
+perlin.<span class="hljs-function">noise3D</span>(<span class="hljs-number">1.5</span>, <span class="hljs-number">2.3</span>, <span class="hljs-number">0.8</span>); <span class="hljs-comment">// -0.089</span>
+
+<span class="hljs-comment">// With fBm for terrain</span>
+perlin.<span class="hljs-function">fbm</span>(x * <span class="hljs-number">0.01</span>, y * <span class="hljs-number">0.01</span>, <span class="hljs-keyword">null</span>, <span class="hljs-number">6</span>, <span class="hljs-number">2.0</span>, <span class="hljs-number">0.5</span>);</code></pre>
+                </section>
+
+                <!-- Worley Noise (NEW) -->
+                <section id="worley-noise">
+                    <h2><a href="#worley-noise" class="anchor">#</a>Worley Noise <span style="color: var(--accent); font-size: 0.8rem; vertical-align: middle;">NEW in v1.1.0</span></h2>
+
+                    <p>Cellular/Voronoi noise - perfect for stone, cells, stained glass, and organic patterns.</p>
+
+                    <pre><code><span class="hljs-keyword">const</span> worley = <span class="hljs-keyword">new</span> Noise.<span class="hljs-function">WorleyNoise</span>(<span class="hljs-string">'seed'</span>);
+
+<span class="hljs-comment">// Basic usage - distance to nearest point</span>
+worley.<span class="hljs-function">noise2D</span>(<span class="hljs-number">1.5</span>, <span class="hljs-number">2.3</span>);
+
+<span class="hljs-comment">// Distance types: 'euclidean', 'manhattan', 'chebyshev'</span>
+<span class="hljs-comment">// Feature indices: 0 = F1 (nearest), 1 = F2 (second), 2 = F2-F1 (edges)</span>
+
+<span class="hljs-comment">// Round cells (euclidean F1)</span>
+worley.<span class="hljs-function">noise2D</span>(x, y, <span class="hljs-string">'euclidean'</span>, <span class="hljs-number">0</span>);
+
+<span class="hljs-comment">// Diamond cells (manhattan)</span>
+worley.<span class="hljs-function">noise2D</span>(x, y, <span class="hljs-string">'manhattan'</span>, <span class="hljs-number">0</span>);
+
+<span class="hljs-comment">// Cell edges / cracks (F2-F1)</span>
+worley.<span class="hljs-function">noise2D</span>(x, y, <span class="hljs-string">'euclidean'</span>, <span class="hljs-number">2</span>);</code></pre>
+
+                    <div class="callout callout-tip">
+                        <div class="callout-icon">💡</div>
+                        <div class="callout-content">
+                            <strong>Worley Use Cases</strong>
+                            F1 creates cell patterns, F2-F1 creates veins/cracks. Combine with distance types for unique textures like stone, scales, or stained glass.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Ridged Noise (NEW) -->
+                <section id="ridged-noise">
+                    <h2><a href="#ridged-noise" class="anchor">#</a>Ridged Noise <span style="color: var(--accent); font-size: 0.8rem; vertical-align: middle;">NEW in v1.1.0</span></h2>
+
+                    <p>Sharp ridges and peaks - ideal for mountains, veins, lightning bolts.</p>
+
+                    <pre><code><span class="hljs-keyword">const</span> ridged = <span class="hljs-keyword">new</span> Noise.<span class="hljs-function">RidgedNoise</span>(<span class="hljs-string">'mountains'</span>);
+
+<span class="hljs-comment">// Sharp mountain ridges</span>
+ridged.<span class="hljs-function">noise2D</span>(x * <span class="hljs-number">0.01</span>, y * <span class="hljs-number">0.01</span>);
+
+<span class="hljs-comment">// With fBm for detailed peaks</span>
+ridged.<span class="hljs-function">fbm</span>(x * <span class="hljs-number">0.01</span>, y * <span class="hljs-number">0.01</span>, <span class="hljs-keyword">null</span>, <span class="hljs-number">6</span>, <span class="hljs-number">2.0</span>, <span class="hljs-number">0.5</span>);</code></pre>
+                </section>
+
+                <!-- Billowed Noise (NEW) -->
+                <section id="billowed-noise">
+                    <h2><a href="#billowed-noise" class="anchor">#</a>Billowed Noise <span style="color: var(--accent); font-size: 0.8rem; vertical-align: middle;">NEW in v1.1.0</span></h2>
+
+                    <p>Soft, puffy shapes - perfect for clouds, smoke, foam.</p>
+
+                    <pre><code><span class="hljs-keyword">const</span> billowed = <span class="hljs-keyword">new</span> Noise.<span class="hljs-function">BillowedNoise</span>(<span class="hljs-string">'clouds'</span>);
+
+<span class="hljs-comment">// Fluffy cloud shapes</span>
+billowed.<span class="hljs-function">noise2D</span>(x * <span class="hljs-number">0.01</span>, y * <span class="hljs-number">0.01</span>);
+
+<span class="hljs-comment">// With fBm for detailed clouds</span>
+billowed.<span class="hljs-function">fbm</span>(x * <span class="hljs-number">0.01</span>, y * <span class="hljs-number">0.01</span>, <span class="hljs-keyword">null</span>, <span class="hljs-number">4</span>, <span class="hljs-number">2.0</span>, <span class="hljs-number">0.5</span>);</code></pre>
+                </section>
+
+                <!-- fBm & Turbulence -->
+                <section id="fbm">
+                    <h2><a href="#fbm" class="anchor">#</a>fBm & Turbulence</h2>
+
+                    <p>fBm layers multiple octaves of noise for more natural-looking results. Turbulence uses absolute values for chaotic patterns.</p>
 
                     <div class="method-card">
                         <div class="method-header">
@@ -1497,6 +1618,79 @@ noise.<span class="hljs-function">fbm</span>(x, y, z, octaves, lacunarity, persi
                         </div>
                     </div>
 
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.turbulence(x, y, z?, octaves?, lacunarity?, persistence?)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                            <span style="color: var(--accent); font-size: 0.7rem; margin-left: 8px;">NEW</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">turbulence(x, y, z?, octaves?, lacunarity?, persistence?): number</div>
+                            <p class="method-desc">Absolute value fBm - chaotic patterns for fire, smoke, plasma.</p>
+                        </div>
+                    </div>
+
+                    <pre><code><span class="hljs-keyword">const</span> noise = <span class="hljs-keyword">new</span> Noise.<span class="hljs-function">SimplexNoise</span>(<span class="hljs-string">'fire'</span>);
+
+<span class="hljs-comment">// Standard fBm for terrain</span>
+noise.<span class="hljs-function">fbm</span>(x * <span class="hljs-number">0.01</span>, y * <span class="hljs-number">0.01</span>, <span class="hljs-keyword">null</span>, <span class="hljs-number">6</span>, <span class="hljs-number">2.0</span>, <span class="hljs-number">0.5</span>);
+
+<span class="hljs-comment">// NEW: Turbulence for fire/smoke</span>
+noise.<span class="hljs-function">turbulence</span>(x * <span class="hljs-number">0.03</span>, y * <span class="hljs-number">0.03</span>, <span class="hljs-keyword">null</span>, <span class="hljs-number">6</span>, <span class="hljs-number">2.2</span>, <span class="hljs-number">0.5</span>);</code></pre>
+
+                    <div class="callout callout-info">
+                        <div class="callout-icon">ℹ️</div>
+                        <div class="callout-content">
+                            <strong>Octaves</strong>
+                            More octaves = more detail but slower. 4-6 octaves is usually sufficient for terrain.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Domain Warping (NEW) -->
+                <section id="domain-warping">
+                    <h2><a href="#domain-warping" class="anchor">#</a>Domain Warping <span style="color: var(--accent); font-size: 0.8rem; vertical-align: middle;">NEW in v1.1.0</span></h2>
+
+                    <p>Distort coordinates using noise for organic, flowing, otherworldly patterns.</p>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.warp(x, y, strength?, octaves?)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">warp(x, y, strength?, octaves?): number</div>
+                            <p class="method-desc">Single domain warp - organic distortion.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <div class="method-header">
+                            <span class="method-name">.warp2(x, y, strength?, octaves?)</span>
+                            <span class="method-badge badge-instance">Instance</span>
+                        </div>
+                        <div class="method-body">
+                            <div class="method-signature">warp2(x, y, strength?, octaves?): number</div>
+                            <p class="method-desc">Double domain warp - extreme organic patterns.</p>
+                        </div>
+                    </div>
+
+                    <pre><code><span class="hljs-keyword">const</span> noise = <span class="hljs-keyword">new</span> Noise.<span class="hljs-function">SimplexNoise</span>(<span class="hljs-string">'marble'</span>);
+
+<span class="hljs-comment">// Single warp - subtle organic distortion</span>
+noise.<span class="hljs-function">warp</span>(x * <span class="hljs-number">0.02</span>, y * <span class="hljs-number">0.02</span>, <span class="hljs-number">1.5</span>, <span class="hljs-number">4</span>);
+
+<span class="hljs-comment">// Double warp - extreme alien terrain</span>
+noise.<span class="hljs-function">warp2</span>(x * <span class="hljs-number">0.02</span>, y * <span class="hljs-number">0.02</span>, <span class="hljs-number">2.0</span>, <span class="hljs-number">4</span>);</code></pre>
+
+                    <div class="callout callout-tip">
+                        <div class="callout-icon">💡</div>
+                        <div class="callout-content">
+                            <strong>Warping Use Cases</strong>
+                            Single warp creates marble-like veins. Double warp creates flowing, alien landscapes perfect for fantasy or sci-fi terrain.
+                        </div>
+                    </div>
+                </section>
                     <pre><code><span class="hljs-keyword">const</span> noise = <span class="hljs-keyword">new</span> Noise.<span class="hljs-function">SimplexNoise</span>(<span class="hljs-string">'world'</span>);
 
 <span class="hljs-comment">// Generate heightmap</span>
