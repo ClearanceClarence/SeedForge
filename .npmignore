@@ -9,6 +9,14 @@ examples/
 landing-page.html
 docs.html
 PUBLISHING.md
+ROADMAP.md
+
+# Images/assets
+*.png
+banner.png
+logo.png
+logo-256.png
+logo-icon.png
 
 # Source (only dist is needed)
 src/

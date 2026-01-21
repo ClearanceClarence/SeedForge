@@ -47,8 +47,8 @@ A comprehensive, seedable PRNG library featuring multiple algorithms, statistica
 ## Features
 
 - **🎲 6 PRNG Algorithms** - Mulberry32, Xoshiro128**, Xorshift128, PCG32, SFC32, LCG
-- **📊 11 Statistical Distributions** - Normal, Exponential, Poisson, Binomial, Gamma, Beta, Pareto, Triangular, Log-Normal, Weibull, Cauchy
-- **🌊 Noise Generators** - Value Noise and Simplex Noise with fractal Brownian motion (fBm)
+- **📊 17 Statistical Distributions** - Normal, Exponential, Poisson, Binomial, Gamma, Beta, Pareto, Triangular, Log-Normal, Weibull, Cauchy, Geometric, Zipf, Chi-Squared, Student's t, Von Mises, Hypergeometric
+- **🌊 6 Noise Generators** - Value, Simplex, Perlin, Worley (Cellular), Ridged, Billowed + fBm, turbulence, domain warping
 - **📦 Array Utilities** - Shuffle, pick, sample, weighted selection
 - **📐 Geometric Utilities** - Random points in/on circles, spheres, rectangles, boxes
 - **💾 State Management** - Save, restore, reset, clone, and fork generators
@@ -397,6 +397,102 @@ rng.cauchy(0, 1);   // -2.38, 0.47, 15.82, -0.18...
 
 **Use cases:** When you want occasional extreme values, resonance phenomena.
 
+#### `geometric(p)` → `number` *(New in v1.1.0)*
+Geometric distribution - number of trials until first success.
+
+```javascript
+// 30% success rate per trial
+rng.geometric(0.3);   // 1, 4, 2, 1, 7, 3...
+
+// 50% success rate
+rng.geometric(0.5);   // 1, 2, 1, 1, 3, 1...
+
+// 10% success rate (rare successes)
+rng.geometric(0.1);   // 8, 12, 5, 15, 3...
+```
+
+**Use cases:** Number of attempts until success, retry counts, rare drop farming.
+
+#### `zipf(n, s?)` → `number` *(New in v1.1.0)*
+Zipf distribution - power-law ranking (1 is most common, n is rarest).
+
+```javascript
+// Top 10 ranking (s=1 default)
+rng.zipf(10);        // 1, 1, 2, 1, 3, 1, 1, 2...
+
+// Top 100 with steeper falloff
+rng.zipf(100, 1.5);  // 1, 1, 1, 2, 1, 1, 3...
+
+// Flatter distribution
+rng.zipf(10, 0.5);   // 1, 3, 2, 5, 1, 4, 2...
+```
+
+**Use cases:** Word frequencies, city populations, website traffic, popularity rankings.
+
+#### `chiSquared(k)` → `number` *(New in v1.1.0)*
+Chi-squared distribution with k degrees of freedom.
+
+```javascript
+// 2 degrees of freedom
+rng.chiSquared(2);    // 0.47, 2.18, 1.23, 3.84...
+
+// 5 degrees of freedom
+rng.chiSquared(5);    // 3.82, 5.47, 2.91, 6.28...
+
+// 10 degrees of freedom
+rng.chiSquared(10);   // 8.12, 11.34, 9.47, 7.89...
+```
+
+**Use cases:** Statistical testing, goodness-of-fit tests, variance analysis.
+
+#### `studentT(df)` → `number` *(New in v1.1.0)*
+Student's t-distribution for small sample statistics.
+
+```javascript
+// 3 degrees of freedom (heavy tails)
+rng.studentT(3);      // -0.84, 1.47, -2.18, 0.23...
+
+// 10 degrees of freedom (closer to normal)
+rng.studentT(10);     // 0.47, -1.12, 0.89, -0.34...
+
+// 30 degrees of freedom (nearly normal)
+rng.studentT(30);     // 0.28, -0.67, 1.04, -0.18...
+```
+
+**Use cases:** Confidence intervals, hypothesis testing, small sample analysis.
+
+#### `vonMises(mu, kappa)` → `number` *(New in v1.1.0)*
+Von Mises distribution for circular/directional data. Returns angle in radians [0, 2π].
+
+```javascript
+// Concentrated around 0 (East)
+rng.vonMises(0, 5);           // 0.12, -0.08, 0.23, 6.18...
+
+// Concentrated around π/2 (North)
+rng.vonMises(Math.PI/2, 3);   // 1.47, 1.62, 1.38, 1.71...
+
+// Low concentration (nearly uniform)
+rng.vonMises(0, 0.5);         // 2.84, 0.47, 5.12, 3.91...
+```
+
+**Use cases:** Wind direction, compass bearings, time of day (circular), animal migration angles.
+
+#### `hypergeometric(N, K, n)` → `number` *(New in v1.1.0)*
+Hypergeometric distribution - successes when sampling without replacement.
+
+```javascript
+// Drawing 5 cards, 13 hearts in 52-card deck
+rng.hypergeometric(52, 13, 5);   // 1, 2, 0, 1, 2, 1...
+
+// 10 defective items in 100, sample 20
+rng.hypergeometric(100, 10, 20); // 2, 1, 3, 2, 2...
+
+// Urn with 30 red balls of 50 total, draw 10
+rng.hypergeometric(50, 30, 10);  // 6, 5, 7, 6, 5...
+```
+
+**Use cases:** Card games (probability of drawing specific cards), quality control sampling, lottery probabilities.
+
 ---
 
 ### Array Utilities
@@ -721,7 +817,7 @@ terrainRng2.random(); // Identical to terrainRng!
 
 ### Noise Generators
 
-SeedForge includes two noise generators for procedural content.
+SeedForge includes 6 noise generators for procedural content generation.
 
 #### Value Noise
 
@@ -757,9 +853,86 @@ simplex.noise3D(x, y, z);
 simplex.noise3D(1.5, 2.3, 0.8); // -0.156
 ```
 
+#### Perlin Noise *(New in v1.1.0)*
+
+Classic Perlin gradient noise.
+
+```javascript
+const perlin = new Noise.PerlinNoise('seed');
+
+// 2D noise (returns -1 to 1)
+perlin.noise2D(x, y);
+perlin.noise2D(1.5, 2.3);     // 0.312
+
+// 3D noise (returns -1 to 1)
+perlin.noise3D(x, y, z);
+perlin.noise3D(1.5, 2.3, 0.8); // -0.089
+```
+
+#### Worley Noise (Cellular) *(New in v1.1.0)*
+
+Cell/Voronoi distance-based noise for organic patterns.
+
+```javascript
+const worley = new Noise.WorleyNoise('seed');
+
+// Basic usage (returns distance to nearest cell point)
+worley.noise2D(x, y);
+
+// With distance type: 'euclidean', 'manhattan', 'chebyshev'
+// F1 (nearest point)
+worley.noise2D(1.5, 2.3, 'euclidean', 0);  // Round cells
+
+// F2 (second nearest)
+worley.noise2D(1.5, 2.3, 'euclidean', 1);  // Puffy shapes
+
+// F2-F1 (cell edges)
+worley.noise2D(1.5, 2.3, 'euclidean', 2);  // Cracks/veins
+
+// Manhattan distance - diamond cells
+worley.noise2D(1.5, 2.3, 'manhattan', 0);
+
+// Chebyshev distance - square cells
+worley.noise2D(1.5, 2.3, 'chebyshev', 0);
+```
+
+**Use cases:** Stone textures, biological cells, cracked earth, stained glass, caustics.
+
+#### Ridged Noise *(New in v1.1.0)*
+
+Sharp ridges and peaks, great for mountains and veins.
+
+```javascript
+const ridged = new Noise.RidgedNoise('seed');
+
+// 2D ridged noise
+ridged.noise2D(x * 0.01, y * 0.01);
+
+// With fBm for detailed mountain ridges
+ridged.fbm(x * 0.01, y * 0.01, null, 6, 2.0, 0.5);
+```
+
+**Use cases:** Mountain ridges, lightning bolts, veins, cracks, alien terrain.
+
+#### Billowed Noise *(New in v1.1.0)*
+
+Soft, puffy noise for clouds and soft terrain.
+
+```javascript
+const billowed = new Noise.BillowedNoise('seed');
+
+// 2D billowed noise
+billowed.noise2D(x * 0.01, y * 0.01);
+
+// With fBm for fluffy clouds
+billowed.fbm(x * 0.01, y * 0.01, null, 4, 2.0, 0.5);
+```
+
+**Use cases:** Clouds, smoke, soft hills, cotton, foam.
+
 #### Fractal Brownian Motion (fBm)
 
-Both noise types support fBm for natural-looking, multi-scale noise:
+All noise types support fBm for natural-looking, multi-scale noise:
 
 ```javascript
 // Parameters: x, y, z, octaves, lacunarity, persistence
@@ -782,6 +955,43 @@ noise.fbm(1.5, 2.3, 0.8, 4, 2.0, 0.5);
 - `octaves` - Number of noise layers (more = more detail)
 - `lacunarity` - Frequency multiplier per octave (usually 2.0)
 - `persistence` - Amplitude multiplier per octave (0.5 = each octave half as strong)
+
+#### Turbulence *(New in v1.1.0)*
+
+Chaotic, swirling noise using absolute values - great for fire, smoke, and plasma.
+
+```javascript
+const simplex = new Noise.SimplexNoise('fire');
+
+// Turbulence (absolute value fBm)
+simplex.turbulence(x, y, null, octaves, lacunarity, persistence);
+
+// Fire effect
+simplex.turbulence(x * 0.03, y * 0.03, null, 6, 2.2, 0.5);
+
+// Plasma
+simplex.turbulence(x * 0.02, y * 0.02, null, 4, 2.5, 0.45);
+```
+
+**Use cases:** Fire, smoke, plasma, marble veins, turbulent water.
+
+#### Domain Warping *(New in v1.1.0)*
+
+Distort coordinates using noise for organic, flowing patterns.
+
+```javascript
+const simplex = new Noise.SimplexNoise('warp');
+
+// Single warp - organic distortion
+simplex.warp(x, y, warpStrength, octaves);
+simplex.warp(x * 0.02, y * 0.02, 1.5, 4);
+
+// Double warp - extreme organic patterns
+simplex.warp2(x, y, warpStrength, octaves);
+simplex.warp2(x * 0.02, y * 0.02, 2.0, 4);
+```
+
+**Use cases:** Marble, alien terrain, organic materials, flowing patterns.
 
 ---
 
@@ -1487,6 +1697,7 @@ const color: RGB = rng.colorRGB();
 
 const noise = new Noise.SimplexNoise('seed');
 const height: number = noise.fbm(1.5, 2.3, null, 4);
+const turb: number = noise.turbulence(1.5, 2.3, null, 6);
 ```
 
 ---
@@ -1507,11 +1718,11 @@ npm run example
 
 Open `test/browser-test.html` in your browser for an interactive test suite with:
 
-- Algorithm validation
-- Distribution tests
-- Visual histograms
-- Noise previews
-- Performance benchmarks
+- **Unit Tests** - Algorithm validation, distribution tests
+- **PRNG Demos** - Random numbers, shuffle, colors, UUIDs, algorithm comparison
+- **Distribution Charts** - Visual histograms with mean indicators
+- **Noise Gallery** - All 6 noise types with click-to-enlarge (1024×1024)
+- **Procedural Textures** - Terrain, stone, clouds, fire, marble, and more
 
 ---
 
@@ -1530,6 +1741,8 @@ Algorithm implementations based on:
 - **PCG** by Melissa O'Neill (pcg-random.org)
 - **SFC32** by Chris Doty-Humphrey (PractRand)
 - **Simplex Noise** based on Stefan Gustavson's implementation
+- **Perlin Noise** by Ken Perlin
+- **Worley Noise** by Steven Worley
 
 ---
 
@@ -1540,6 +1753,34 @@ Contributions are welcome! Please feel free to submit issues and pull requests.
 ---
 
 ## Changelog
+
+### 1.1.0
+
+**New Statistical Distributions (6):**
+- `geometric(p)` - Trials until first success
+- `zipf(n, s)` - Power-law ranking distribution
+- `chiSquared(k)` - Chi-squared distribution
+- `studentT(df)` - Student's t-distribution
+- `vonMises(mu, kappa)` - Circular/angular distribution
+- `hypergeometric(N, K, n)` - Sampling without replacement
+
+**New Noise Generators (4):**
+- `PerlinNoise` - Classic Perlin gradient noise
+- `WorleyNoise` - Cellular/Voronoi noise with distance types (euclidean, manhattan, chebyshev)
+- `RidgedNoise` - Sharp ridges for mountains, veins
+- `BillowedNoise` - Soft shapes for clouds, smoke
+
+**New Noise Features:**
+- `turbulence()` - Chaotic absolute-value fBm for fire, smoke, plasma
+- `warp()` - Single domain warping for organic distortion
+- `warp2()` - Double domain warping for extreme organic patterns
+
+**Improvements:**
+- Enhanced browser test suite with interactive PRNG demos
+- Click-to-enlarge noise previews (1024×1024)
+- PRNG visualization section with canvas visualizations
+- Professional distribution histograms with mean indicators
+- 39 comprehensive unit tests
 
 ### 1.0.0
 

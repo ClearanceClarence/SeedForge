@@ -161,6 +161,85 @@ for (let i = 0; i < 100; i++) {
 }
 assert(simplexInRange, 'SimplexNoise in [-1, 1]');
 
+section('New Distributions (v1.1.0)');
+
+const distRng2 = new PRNG('dist-test-v11');
+
+// Geometric distribution
+const geoSamples = Array.from({ length: 1000 }, () => distRng2.geometric(0.3));
+const geoMin = Math.min(...geoSamples);
+assert(geoMin >= 1, 'geometric() returns values >= 1');
+
+// Zipf distribution
+const zipfSamples = Array.from({ length: 100 }, () => distRng2.zipf(10, 1));
+assert(zipfSamples.every(v => v >= 1 && v <= 10), 'zipf() in valid range');
+
+// Chi-squared distribution
+const chiSamples = Array.from({ length: 100 }, () => distRng2.chiSquared(4));
+assert(chiSamples.every(v => v >= 0), 'chiSquared() returns non-negative values');
+
+// Student's t-distribution
+const tSamples = Array.from({ length: 100 }, () => distRng2.studentT(10));
+assert(tSamples.some(v => v < 0) && tSamples.some(v => v > 0), 'studentT() spans positive and negative');
+
+// Von Mises distribution
+const vmSamples = Array.from({ length: 100 }, () => distRng2.vonMises(0, 2));
+assert(vmSamples.every(v => v >= -Math.PI && v <= Math.PI), 'vonMises() in [-π, π]');
+
+// Hypergeometric distribution
+const hyperSamples = Array.from({ length: 100 }, () => distRng2.hypergeometric(50, 20, 10));
+assert(hyperSamples.every(v => v >= 0 && v <= 10), 'hypergeometric() in valid range');
+
+section('New Noise Types (v1.1.0)');
+
+// Perlin noise
+const perlin = new Noise.PerlinNoise('perlin-test');
+let perlinWorks = true;
+for (let i = 0; i < 50; i++) {
+    const v = perlin.noise2D(i * 0.1, i * 0.05);
+    if (typeof v !== 'number' || isNaN(v)) perlinWorks = false;
+}
+assert(perlinWorks, 'PerlinNoise generates valid 2D values');
+
+// Worley noise
+const worley = new Noise.WorleyNoise('worley-test');
+let worleyWorks = true;
+for (let i = 0; i < 50; i++) {
+    const v = worley.noise2D(i * 0.5, i * 0.3);
+    if (typeof v !== 'number' || isNaN(v) || v < 0) worleyWorks = false;
+}
+assert(worleyWorks, 'WorleyNoise generates valid non-negative 2D values');
+
+// Worley F2-F1 (cell edges)
+const worleyEdge = worley.noise2D(1.5, 2.3, 'euclidean', 2);
+assert(worleyEdge >= 0, 'WorleyNoise F2-F1 returns non-negative');
+
+// Ridged noise
+const ridged = new Noise.RidgedNoise('ridged-test');
+let ridgedWorks = true;
+for (let i = 0; i < 50; i++) {
+    const v = ridged.noise2D(i * 0.1, i * 0.05);
+    if (typeof v !== 'number' || isNaN(v) || v < 0) ridgedWorks = false;
+}
+assert(ridgedWorks, 'RidgedNoise generates valid non-negative 2D values');
+
+// Billowed noise  
+const billowed = new Noise.BillowedNoise('billowed-test');
+let billowedWorks = true;
+for (let i = 0; i < 50; i++) {
+    const v = billowed.noise2D(i * 0.1, i * 0.05);
+    if (typeof v !== 'number' || isNaN(v) || v < 0) billowedWorks = false;
+}
+assert(billowedWorks, 'BillowedNoise generates valid non-negative 2D values');
+
+// Domain warping
+const warpValue = simplex.warp(1.5, 2.3, 0.5, 3);
+assert(typeof warpValue === 'number' && !isNaN(warpValue), 'SimplexNoise.warp() works');
+
+// Turbulence
+const turbValue = simplex.turbulence(1.5, 2.3, null, 4, 2, 0.5);
+assert(typeof turbValue === 'number' && !isNaN(turbValue) && turbValue >= 0, 'SimplexNoise.turbulence() works');
+
 section('All Algorithms');
 
 const algorithms = ['mulberry32', 'xoshiro128', 'xorshift128', 'pcg32', 'sfc32', 'lcg'];

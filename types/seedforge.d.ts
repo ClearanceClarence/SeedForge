@@ -59,6 +59,12 @@ export class PRNG {
     logNormal(mu?: number, sigma?: number): number;
     weibull(scale?: number, shape?: number): number;
     cauchy(location?: number, scale?: number): number;
+    geometric(p: number): number;
+    zipf(n: number, s?: number): number;
+    chiSquared(k: number): number;
+    studentT(df: number): number;
+    vonMises(mu?: number, kappa?: number): number;
+    hypergeometric(N: number, K: number, n: number): number;
 
     // Array utilities
     shuffle<T>(array: T[]): T[];
@@ -176,6 +182,78 @@ export namespace Noise {
     }
 
     export class SimplexNoise {
+        constructor(seed?: string | number);
+        noise2D(x: number, y: number): number;
+        noise3D(x: number, y: number, z: number): number;
+        fbm(
+            x: number,
+            y?: number | null,
+            z?: number | null,
+            octaves?: number,
+            lacunarity?: number,
+            persistence?: number
+        ): number;
+        turbulence(
+            x: number,
+            y?: number | null,
+            z?: number | null,
+            octaves?: number,
+            lacunarity?: number,
+            persistence?: number
+        ): number;
+        warp(x: number, y: number, warpStrength?: number, octaves?: number): number;
+        warp2(x: number, y: number, warpStrength?: number, octaves?: number): number;
+    }
+
+    export class PerlinNoise {
+        constructor(seed?: string | number);
+        noise2D(x: number, y: number): number;
+        noise3D(x: number, y: number, z: number): number;
+        fbm(
+            x: number,
+            y?: number | null,
+            z?: number | null,
+            octaves?: number,
+            lacunarity?: number,
+            persistence?: number
+        ): number;
+    }
+
+    export type WorleyDistanceType = 'euclidean' | 'manhattan' | 'chebyshev';
+    export type WorleyReturnType = 0 | 1 | 2;
+
+    export class WorleyNoise {
+        constructor(seed?: string | number);
+        noise2D(x: number, y: number, distanceType?: WorleyDistanceType, returnType?: WorleyReturnType): number;
+        noise3D(x: number, y: number, z: number, distanceType?: WorleyDistanceType, returnType?: WorleyReturnType): number;
+        fbm(
+            x: number,
+            y?: number | null,
+            z?: number | null,
+            octaves?: number,
+            lacunarity?: number,
+            persistence?: number,
+            distanceType?: WorleyDistanceType,
+            returnType?: WorleyReturnType
+        ): number;
+    }
+
+    export class RidgedNoise {
+        constructor(seed?: string | number);
+        noise2D(x: number, y: number): number;
+        noise3D(x: number, y: number, z: number): number;
+        fbm(
+            x: number,
+            y?: number | null,
+            z?: number | null,
+            octaves?: number,
+            lacunarity?: number,
+            persistence?: number,
+            offset?: number
+        ): number;
+    }
+
+    export class BillowedNoise {
         constructor(seed?: string | number);
         noise2D(x: number, y: number): number;
         noise3D(x: number, y: number, z: number): number;

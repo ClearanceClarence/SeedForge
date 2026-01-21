@@ -3,982 +3,1615 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeedForge Test Suite</title>
+    <title>SeedForge v1.1.0 | Visual Test Suite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0d1117;
-            --surface: #161b22;
-            --border: #30363d;
-            --text: #c9d1d9;
-            --text-muted: #8b949e;
-            --accent: #58a6ff;
-            --success: #3fb950;
-            --error: #f85149;
-            --warning: #d29922;
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --bg-elevated: #22222e;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-default: rgba(255, 255, 255, 0.1);
+            --border-strong: rgba(255, 255, 255, 0.15);
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-tertiary: #a855f7;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+            --gradient-glow: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
         }
         
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
-            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             line-height: 1.6;
-            padding: 20px;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
         
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+        /* Loading Screen */
+        #loadingScreen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
         }
         
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border);
+        #loadingScreen.hidden { opacity: 0; visibility: hidden; }
+        
+        .loader-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 40px;
         }
         
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #58a6ff, #a371f7);
+        .loader-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            animation: spin 1.5s linear infinite;
+        }
+        
+        .loader-ring:nth-child(1) { border-top-color: #6366f1; animation-duration: 1.5s; }
+        .loader-ring:nth-child(2) { inset: 10px; border-right-color: #8b5cf6; animation-duration: 2s; animation-direction: reverse; }
+        .loader-ring:nth-child(3) { inset: 20px; border-bottom-color: #a855f7; animation-duration: 2.5s; }
+        
+        .loader-core {
+            position: absolute;
+            inset: 35px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.6; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
+        
+        .loader-title {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            margin-bottom: 8px;
         }
         
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
+        .loader-version { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 30px; font-family: 'JetBrains Mono', monospace; }
+        .loader-status { font-size: 0.95rem; color: var(--text-secondary); min-height: 24px; }
+        .loader-progress { width: 280px; height: 3px; background: var(--bg-tertiary); border-radius: 2px; margin-top: 20px; overflow: hidden; }
+        .loader-progress-bar { height: 100%; background: var(--gradient-primary); width: 0%; transition: width 0.3s ease; }
         
-        .controls {
-            display: flex;
-            gap: 15px;
+        /* Modal */
+        #imageModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
             justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
+            z-index: 10000;
+            padding: 20px;
+            cursor: zoom-out;
         }
+        
+        #imageModal.visible { display: flex; }
+        
+        .modal-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(99, 102, 241, 0.3);
+            cursor: default;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .modal-title { font-weight: 600; font-size: 1.1rem; }
+        .modal-size { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-muted); }
+        
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .modal-close:hover { background: var(--error); color: white; }
+        
+        .modal-canvas-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary);
+        }
+        
+        #modalCanvas { max-width: 100%; max-height: calc(90vh - 120px); display: block; }
+        
+        .modal-loading {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary);
+        }
+        
+        .modal-loading.hidden { display: none; }
+        
+        .modal-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border-default);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        
+        .modal-footer {
+            padding: 12px 20px;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border-default);
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+        
+        .modal-btn:hover { border-color: var(--accent-primary); }
+        .modal-btn-primary { background: var(--gradient-primary); border: none; }
+        
+        /* Main Layout */
+        .app-container { max-width: 1800px; margin: 0 auto; padding: 30px; }
+        
+        .app-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: var(--gradient-glow);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .app-header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        .header-content { position: relative; z-index: 1; }
+        
+        .app-title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+        
+        .app-subtitle { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 30px; }
+        
+        .controls-panel { display: flex; gap: 16px; justify-content: center; align-items: center; flex-wrap: wrap; }
         
         .control-group {
             display: flex;
             align-items: center;
             gap: 10px;
+            background: var(--bg-secondary);
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
         }
         
-        label {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
+        .control-label { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
         
-        input[type="text"], select {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 8px 12px;
-            border-radius: 6px;
+        .control-input {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
             font-size: 0.95rem;
+            font-family: 'JetBrains Mono', monospace;
+            width: 200px;
+            transition: all 0.2s ease;
         }
         
-        input[type="text"]:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
+        .control-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
         
-        button {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: opacity 0.2s;
+            transition: all 0.2s ease;
+            border: none;
+            font-family: inherit;
         }
         
-        button:hover {
-            opacity: 0.9;
+        .btn-primary { background: var(--gradient-primary); color: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-default); }
+        .btn-secondary:hover { background: var(--bg-elevated); border-color: var(--accent-primary); }
+        
+        .btn-icon {
+            width: 44px; height: 44px; padding: 0;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: var(--radius-md);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
         
-        .test-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
+        .btn-icon:hover { background: var(--bg-elevated); color: var(--accent-primary); border-color: var(--accent-primary); }
+        .btn-icon svg { width: 20px; height: 20px; }
+        
+        .summary-bar {
+            display: none;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-subtle);
         }
         
-        .test-section {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
+        .summary-bar.visible { display: flex; }
+        .summary-stat { text-align: center; }
+        .summary-value { font-size: 2.5rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .summary-value.passed { color: var(--success); }
+        .summary-value.failed { color: var(--error); }
+        .summary-value.total { color: var(--accent-primary); }
+        .summary-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+        
+        .content-area { display: flex; flex-direction: column; gap: 30px; }
+        
+        .section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
             overflow: hidden;
         }
         
         .section-header {
-            background: rgba(88, 166, 255, 0.1);
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-subtle);
         }
         
-        .section-header h2 {
-            font-size: 1rem;
-            font-weight: 600;
-        }
+        .section-title { display: flex; align-items: center; gap: 12px; font-size: 1.1rem; font-weight: 600; }
+        .section-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--gradient-glow); border-radius: var(--radius-sm); font-size: 1rem; }
+        .section-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+        .badge-pass { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .badge-fail { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+        .section-content { padding: 24px; }
         
-        .section-status {
-            font-size: 0.8rem;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-weight: 500;
-        }
-        
-        .status-pass {
-            background: rgba(63, 185, 80, 0.2);
-            color: var(--success);
-        }
-        
-        .status-fail {
-            background: rgba(248, 81, 73, 0.2);
-            color: var(--error);
-        }
-        
-        .section-content {
-            padding: 16px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.85rem;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .log-line {
-            padding: 4px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .log-line:last-child {
-            border-bottom: none;
-        }
-        
-        .log-pass {
-            color: var(--success);
-        }
-        
-        .log-fail {
-            color: var(--error);
-        }
-        
-        .log-info {
-            color: var(--text-muted);
-        }
-        
-        .log-value {
-            color: var(--accent);
-        }
-        
-        .visual-section {
-            grid-column: 1 / -1;
-        }
-        
-        .visual-grid {
+        .test-results {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+        
+        .test-result {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid transparent;
+        }
+        
+        .test-result.pass { border-left-color: var(--success); }
+        .test-result.fail { border-left-color: var(--error); }
+        .test-status { width: 20px; text-align: center; }
+        .test-status.pass { color: var(--success); }
+        .test-status.fail { color: var(--error); }
+        .test-name { flex: 1; color: var(--text-secondary); }
+        .test-value { color: var(--text-muted); font-size: 0.8rem; }
+        
+        /* Visual Gallery */
+        .visual-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 20px;
-            padding: 16px;
         }
         
-        .visual-item {
+        .visual-card {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .visual-card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-4px);
+        }
+        
+        .visual-card:hover .visual-overlay { opacity: 1; }
+        
+        .visual-canvas-wrapper {
+            position: relative;
+            background: var(--bg-primary);
+            aspect-ratio: 1;
+        }
+        
+        .visual-canvas-wrapper canvas { width: 100%; height: 100%; display: block; }
+        
+        .visual-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(99, 102, 241, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .visual-overlay-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .visual-info { padding: 14px; }
+        .visual-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 2px; }
+        .visual-description { font-size: 0.8rem; color: var(--text-muted); }
+        
+        .click-hint {
             text-align: center;
-        }
-        
-        .visual-item h3 {
-            font-size: 0.9rem;
-            margin-bottom: 10px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            font-size: 0.85rem;
             color: var(--text-muted);
         }
         
-        canvas {
-            background: var(--bg);
-            border-radius: 6px;
-            display: block;
-            margin: 0 auto;
-        }
+        .click-hint strong { color: var(--accent-primary); }
         
-        .histogram {
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            height: 150px;
-            gap: 2px;
-            padding: 10px;
-        }
+        /* Distribution Charts */
+        .distribution-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px; }
+        .distribution-card { background: var(--bg-tertiary); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); overflow: hidden; transition: all 0.3s ease; }
+        .distribution-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-glow); }
+        .distribution-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-elevated); border-bottom: 1px solid var(--border-subtle); }
+        .distribution-name { font-weight: 600; font-size: 0.95rem; }
+        .distribution-samples { font-size: 0.75rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+        .distribution-card canvas { display: block; width: 100%; }
+        .distribution-desc { padding: 10px 16px; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border-subtle); }
         
-        .histogram-bar {
-            width: 8px;
-            background: var(--accent);
-            border-radius: 2px 2px 0 0;
-            transition: height 0.3s;
-        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-tertiary); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
         
-        .summary {
-            text-align: center;
-            padding: 20px;
-            margin-top: 20px;
-            background: var(--surface);
-            border-radius: 10px;
-            border: 1px solid var(--border);
+        @media (max-width: 768px) {
+            .app-container { padding: 16px; }
+            .app-title { font-size: 2rem; }
+            .controls-panel { flex-direction: column; }
+            .control-group { width: 100%; justify-content: center; }
+            .control-input { width: 150px; }
+            .visual-gallery { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
         }
-        
-        .summary-stats {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin-top: 15px;
-        }
-        
-        .stat {
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-        }
-        
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-        
-        .stat-pass .stat-value { color: var(--success); }
-        .stat-fail .stat-value { color: var(--error); }
-        .stat-total .stat-value { color: var(--accent); }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🌱 SeedForge Test Suite</h1>
-            <p class="subtitle">Advanced PRNG Library - Interactive Testing</p>
-        </header>
-        
-        <div class="controls">
-            <div class="control-group">
-                <label for="seed">Seed:</label>
-                <input type="text" id="seed" value="test-seed-42" placeholder="Enter seed...">
-            </div>
-            <div class="control-group">
-                <label for="algorithm">Algorithm:</label>
-                <select id="algorithm">
-                    <option value="xoshiro128">Xoshiro128** (default)</option>
-                    <option value="sfc32">SFC32</option>
-                    <option value="pcg32">PCG32</option>
-                    <option value="mulberry32">Mulberry32</option>
-                    <option value="xorshift128">Xorshift128+</option>
-                    <option value="lcg">LCG</option>
-                </select>
-            </div>
-            <button onclick="runAllTests()">▶ Run All Tests</button>
-            <button onclick="clearResults()" style="background: var(--border);">Clear</button>
+    <!-- Loading Screen -->
+    <div id="loadingScreen">
+        <div class="loader-container">
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-core"></div>
         </div>
-        
-        <div class="test-grid" id="testGrid">
-            <!-- Test sections will be inserted here -->
+        <div class="loader-title">SeedForge</div>
+        <div class="loader-version">v1.1.0</div>
+        <div class="loader-status" id="loadingStatus">Initializing...</div>
+        <div class="loader-progress">
+            <div class="loader-progress-bar" id="progressBar"></div>
         </div>
-        
-        <div class="summary" id="summary" style="display: none;">
-            <h2>Test Summary</h2>
-            <div class="summary-stats">
-                <div class="stat stat-pass">
-                    <div class="stat-value" id="passCount">0</div>
-                    <div class="stat-label">Passed</div>
+    </div>
+    
+    <!-- Image Modal -->
+    <div id="imageModal" onclick="if(event.target === this) closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Noise Preview</span>
+                <span class="modal-size">1024 × 1024</span>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-canvas-wrapper">
+                <canvas id="modalCanvas" width="1024" height="1024"></canvas>
+                <div class="modal-loading" id="modalLoading">
+                    <div class="modal-spinner"></div>
+                    <span>Rendering high resolution...</span>
                 </div>
-                <div class="stat stat-fail">
-                    <div class="stat-value" id="failCount">0</div>
-                    <div class="stat-label">Failed</div>
-                </div>
-                <div class="stat stat-total">
-                    <div class="stat-value" id="totalCount">0</div>
-                    <div class="stat-label">Total</div>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="downloadImage()">💾 Download PNG</button>
             </div>
         </div>
     </div>
     
+    <!-- Main App -->
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">🌱 SeedForge</h1>
+                <p class="app-subtitle">Advanced PRNG Library — Visual Test Suite v1.1.0</p>
+                
+                <div class="controls-panel">
+                    <div class="control-group">
+                        <span class="control-label">Seed</span>
+                        <input type="text" id="seedInput" class="control-input" placeholder="Enter seed...">
+                        <button class="btn-icon" onclick="randomizeSeed()" title="Random Seed">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="runAllTests()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                        Generate
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="runUnitTestsOnly()">
+                        Run Unit Tests Only
+                    </button>
+                </div>
+                
+                <div class="summary-bar" id="summaryBar">
+                    <div class="summary-stat">
+                        <div class="summary-value passed" id="passCount">0</div>
+                        <div class="summary-label">Passed</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-value failed" id="failCount">0</div>
+                        <div class="summary-label">Failed</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-value total" id="totalCount">0</div>
+                        <div class="summary-label">Total</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="content-area" id="contentArea"></div>
+    </div>
+    
     <script src="../dist/seedforge.js"></script>
     <script>
-        // Test framework
+        // ============================================================
+        // GLOBAL STATE
+        // ============================================================
+        let currentSeed = '';
         let testResults = { passed: 0, failed: 0 };
+        let noiseRenderers = {};
         
-        function createSection(id, title) {
+        // ============================================================
+        // UTILITIES
+        // ============================================================
+        function generateRandomSeed() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let seed = '';
+            for (let i = 0; i < 12; i++) seed += chars.charAt(Math.floor(Math.random() * chars.length));
+            return seed;
+        }
+        
+        function getSeed() { return document.getElementById('seedInput').value || currentSeed; }
+        
+        function randomizeSeed() {
+            currentSeed = generateRandomSeed();
+            document.getElementById('seedInput').value = currentSeed;
+        }
+        
+        function setLoadingStatus(text) { document.getElementById('loadingStatus').textContent = text; }
+        function setProgress(percent) { document.getElementById('progressBar').style.width = percent + '%'; }
+        function hideLoading() { document.getElementById('loadingScreen').classList.add('hidden'); }
+        function showLoading() { document.getElementById('loadingScreen').classList.remove('hidden'); }
+        function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        function clearContent() { document.getElementById('contentArea').innerHTML = ''; noiseRenderers = {}; }
+        
+        // ============================================================
+        // MODAL
+        // ============================================================
+        function openModal(id, title) {
+            const modal = document.getElementById('imageModal');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalLoading').classList.remove('hidden');
+            modal.classList.add('visible');
+            
+            // Render at high resolution
+            setTimeout(() => {
+                const renderer = noiseRenderers[id];
+                if (renderer) {
+                    const canvas = document.getElementById('modalCanvas');
+                    renderer(canvas, 1024);
+                }
+                document.getElementById('modalLoading').classList.add('hidden');
+            }, 50);
+        }
+        
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('visible');
+        }
+        
+        function downloadImage() {
+            const canvas = document.getElementById('modalCanvas');
+            const title = document.getElementById('modalTitle').textContent;
+            const link = document.createElement('a');
+            link.download = `seedforge-${title.toLowerCase().replace(/\s+/g, '-')}-${getSeed()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+        
+        // ============================================================
+        // SECTION BUILDERS
+        // ============================================================
+        function createSection(icon, title, content, badge = null) {
             const section = document.createElement('div');
-            section.className = 'test-section';
-            section.id = id;
+            section.className = 'section';
             section.innerHTML = `
                 <div class="section-header">
-                    <h2>${title}</h2>
-                    <span class="section-status" id="${id}-status">Running...</span>
+                    <div class="section-title">
+                        <span class="section-icon">${icon}</span>
+                        <span>${title}</span>
+                    </div>
+                    ${badge ? `<span class="section-badge ${badge.type}">${badge.text}</span>` : ''}
                 </div>
-                <div class="section-content" id="${id}-content"></div>
+                <div class="section-content">${content}</div>
             `;
-            document.getElementById('testGrid').appendChild(section);
-            return document.getElementById(`${id}-content`);
-        }
-        
-        function log(container, message, type = 'info') {
-            const line = document.createElement('div');
-            line.className = `log-line log-${type}`;
-            line.innerHTML = message;
-            container.appendChild(line);
-        }
-        
-        function assert(container, condition, message) {
-            if (condition) {
-                log(container, `✅ ${message}`, 'pass');
-                testResults.passed++;
-                return true;
-            } else {
-                log(container, `❌ ${message}`, 'fail');
-                testResults.failed++;
-                return false;
-            }
-        }
-        
-        function setStatus(id, passed) {
-            const status = document.getElementById(`${id}-status`);
-            status.className = `section-status ${passed ? 'status-pass' : 'status-fail'}`;
-            status.textContent = passed ? 'PASS' : 'FAIL';
-        }
-        
-        function getSeed() {
-            return document.getElementById('seed').value || 'default-seed';
-        }
-        
-        function getAlgorithm() {
-            return document.getElementById('algorithm').value;
-        }
-        
-        function clearResults() {
-            document.getElementById('testGrid').innerHTML = '';
-            document.getElementById('summary').style.display = 'none';
-            testResults = { passed: 0, failed: 0 };
+            document.getElementById('contentArea').appendChild(section);
+            return section;
         }
         
         // ============================================================
-        // TESTS
+        // NOISE RENDERING
         // ============================================================
-        
-        function testBasicGeneration() {
-            const container = createSection('basic', '🎲 Basic Generation');
-            const seed = getSeed();
-            const algo = getAlgorithm();
-            let allPassed = true;
+        function renderNoiseCanvas(canvas, size, noiseFunc) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+            const imageData = ctx.createImageData(size, size);
             
-            try {
-                const rng = new PRNG.PRNG(seed, algo);
-                
-                log(container, `Seed: <span class="log-value">${seed}</span>, Algorithm: <span class="log-value">${algo}</span>`);
-                
-                // Test random() range
-                let inRange = true;
-                for (let i = 0; i < 1000; i++) {
-                    const v = rng.random();
-                    if (v < 0 || v >= 1) inRange = false;
-                }
-                allPassed &= assert(container, inRange, 'random() returns values in [0, 1)');
-                
-                // Test int() range
-                rng.reset();
-                let intInRange = true;
-                for (let i = 0; i < 1000; i++) {
-                    const v = rng.int(5, 15);
-                    if (v < 5 || v > 15 || !Number.isInteger(v)) intInRange = false;
-                }
-                allPassed &= assert(container, intInRange, 'int(5, 15) returns integers in [5, 15]');
-                
-                // Test float() range
-                rng.reset();
-                let floatInRange = true;
-                for (let i = 0; i < 1000; i++) {
-                    const v = rng.float(10, 20);
-                    if (v < 10 || v >= 20) floatInRange = false;
-                }
-                allPassed &= assert(container, floatInRange, 'float(10, 20) returns values in [10, 20)');
-                
-                // Test bool()
-                rng.reset();
-                let trueCount = 0;
-                for (let i = 0; i < 10000; i++) {
-                    if (rng.bool(0.3)) trueCount++;
-                }
-                const ratio = trueCount / 10000;
-                allPassed &= assert(container, ratio > 0.25 && ratio < 0.35, `bool(0.3) ~30% true (got ${(ratio * 100).toFixed(1)}%)`);
-                
-                // Show sample values
-                rng.reset();
-                const samples = [];
-                for (let i = 0; i < 5; i++) samples.push(rng.random().toFixed(6));
-                log(container, `Sample values: <span class="log-value">[${samples.join(', ')}]</span>`);
-                
-            } catch (e) {
-                log(container, `Error: ${e.message}`, 'fail');
-                allPassed = false;
-            }
-            
-            setStatus('basic', allPassed);
-        }
-        
-        function testReproducibility() {
-            const container = createSection('repro', '🔄 Reproducibility');
-            const seed = getSeed();
-            const algo = getAlgorithm();
-            let allPassed = true;
-            
-            try {
-                const rng1 = new PRNG.PRNG(seed, algo);
-                const rng2 = new PRNG.PRNG(seed, algo);
-                
-                const seq1 = [];
-                const seq2 = [];
-                for (let i = 0; i < 10; i++) {
-                    seq1.push(rng1.random());
-                    seq2.push(rng2.random());
-                }
-                
-                const identical = seq1.every((v, i) => v === seq2[i]);
-                allPassed &= assert(container, identical, 'Same seed produces identical sequences');
-                
-                log(container, `Sequence 1: <span class="log-value">[${seq1.slice(0, 3).map(v => v.toFixed(4)).join(', ')}...]</span>`);
-                log(container, `Sequence 2: <span class="log-value">[${seq2.slice(0, 3).map(v => v.toFixed(4)).join(', ')}...]</span>`);
-                
-                // Test reset
-                rng1.reset();
-                const afterReset = [];
-                for (let i = 0; i < 10; i++) {
-                    afterReset.push(rng1.random());
-                }
-                const resetWorks = seq1.every((v, i) => v === afterReset[i]);
-                allPassed &= assert(container, resetWorks, 'reset() returns to initial state');
-                
-                // Test different seeds
-                const rng3 = new PRNG.PRNG(seed + '-different', algo);
-                const seq3 = [];
-                for (let i = 0; i < 10; i++) {
-                    seq3.push(rng3.random());
-                }
-                const different = !seq1.every((v, i) => v === seq3[i]);
-                allPassed &= assert(container, different, 'Different seeds produce different sequences');
-                
-            } catch (e) {
-                log(container, `Error: ${e.message}`, 'fail');
-                allPassed = false;
-            }
-            
-            setStatus('repro', allPassed);
-        }
-        
-        function testStateManagement() {
-            const container = createSection('state', '💾 State Management');
-            const seed = getSeed();
-            const algo = getAlgorithm();
-            let allPassed = true;
-            
-            try {
-                const rng = new PRNG.PRNG(seed, algo);
-                
-                // Advance the generator
-                for (let i = 0; i < 50; i++) rng.random();
-                
-                // Save state
-                const savedState = rng.getState();
-                log(container, `State saved after 50 iterations`);
-                
-                // Generate more values
-                const expected = [];
-                for (let i = 0; i < 10; i++) {
-                    expected.push(rng.random());
-                }
-                
-                // Restore and verify
-                rng.setState(savedState);
-                const restored = [];
-                for (let i = 0; i < 10; i++) {
-                    restored.push(rng.random());
-                }
-                
-                const stateWorks = expected.every((v, i) => v === restored[i]);
-                allPassed &= assert(container, stateWorks, 'setState() restores exact position');
-                
-                // Test clone
-                rng.reset();
-                for (let i = 0; i < 25; i++) rng.random();
-                
-                const cloned = rng.clone();
-                const origSeq = [];
-                const cloneSeq = [];
-                for (let i = 0; i < 10; i++) {
-                    origSeq.push(rng.random());
-                    cloneSeq.push(cloned.random());
-                }
-                
-                const cloneWorks = origSeq.every((v, i) => v === cloneSeq[i]);
-                allPassed &= assert(container, cloneWorks, 'clone() creates independent copy');
-                
-                // Test fork
-                rng.reset();
-                const fork1 = rng.fork('terrain');
-                const fork2 = rng.fork('rivers');
-                
-                const forkVal1 = fork1.random();
-                const forkVal2 = fork2.random();
-                allPassed &= assert(container, forkVal1 !== forkVal2, 'fork() creates different streams');
-                
-                // Verify fork reproducibility
-                const rng2 = new PRNG.PRNG(seed, algo);
-                const fork1Again = rng2.fork('terrain');
-                allPassed &= assert(container, fork1Again.random() === forkVal1, 'fork() is reproducible');
-                
-            } catch (e) {
-                log(container, `Error: ${e.message}`, 'fail');
-                allPassed = false;
-            }
-            
-            setStatus('state', allPassed);
-        }
-        
-        function testDistributions() {
-            const container = createSection('dist', '📊 Statistical Distributions');
-            const seed = getSeed();
-            const algo = getAlgorithm();
-            let allPassed = true;
-            
-            try {
-                const rng = new PRNG.PRNG(seed, algo);
-                const n = 10000;
-                
-                // Normal distribution
-                const normals = [];
-                for (let i = 0; i < n; i++) normals.push(rng.normal(100, 15));
-                const normalMean = normals.reduce((a, b) => a + b, 0) / n;
-                const normalStd = Math.sqrt(normals.reduce((a, b) => a + (b - normalMean) ** 2, 0) / n);
-                
-                allPassed &= assert(container, Math.abs(normalMean - 100) < 1, 
-                    `normal(100, 15) mean: ${normalMean.toFixed(2)} (expected ~100)`);
-                allPassed &= assert(container, Math.abs(normalStd - 15) < 1, 
-                    `normal(100, 15) stdDev: ${normalStd.toFixed(2)} (expected ~15)`);
-                
-                // Exponential distribution
-                const exps = [];
-                for (let i = 0; i < n; i++) exps.push(rng.exponential(0.5));
-                const expMean = exps.reduce((a, b) => a + b, 0) / n;
-                allPassed &= assert(container, Math.abs(expMean - 2) < 0.1, 
-                    `exponential(0.5) mean: ${expMean.toFixed(2)} (expected ~2)`);
-                
-                // Poisson distribution
-                const poissons = [];
-                for (let i = 0; i < n; i++) poissons.push(rng.poisson(4));
-                const poissonMean = poissons.reduce((a, b) => a + b, 0) / n;
-                allPassed &= assert(container, Math.abs(poissonMean - 4) < 0.2, 
-                    `poisson(4) mean: ${poissonMean.toFixed(2)} (expected ~4)`);
-                
-                // Triangular distribution
-                const triangulars = [];
-                for (let i = 0; i < n; i++) triangulars.push(rng.triangular(0, 10, 7));
-                const triMean = triangulars.reduce((a, b) => a + b, 0) / n;
-                const expectedTriMean = (0 + 10 + 7) / 3; // 5.67
-                allPassed &= assert(container, Math.abs(triMean - expectedTriMean) < 0.2, 
-                    `triangular(0, 10, 7) mean: ${triMean.toFixed(2)} (expected ~${expectedTriMean.toFixed(2)})`);
-                
-            } catch (e) {
-                log(container, `Error: ${e.message}`, 'fail');
-                allPassed = false;
-            }
-            
-            setStatus('dist', allPassed);
-        }
-        
-        function testArrayUtilities() {
-            const container = createSection('array', '📦 Array Utilities');
-            const seed = getSeed();
-            const algo = getAlgorithm();
-            let allPassed = true;
-            
-            try {
-                const rng = new PRNG.PRNG(seed, algo);
-                
-                // Shuffle
-                const original = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-                const shuffled = rng.shuffled(original);
-                
-                const originalUnchanged = original.join(',') === '1,2,3,4,5,6,7,8,9,10';
-                allPassed &= assert(container, originalUnchanged, 'shuffled() does not modify original');
-                
-                const sameElements = shuffled.slice().sort((a, b) => a - b).join(',') === original.join(',');
-                allPassed &= assert(container, sameElements, 'shuffled() contains same elements');
-                
-                log(container, `Shuffled: <span class="log-value">[${shuffled.join(', ')}]</span>`);
-                
-                // Pick
-                const items = ['apple', 'banana', 'cherry', 'date', 'elderberry'];
-                const picked = rng.pick(items);
-                allPassed &= assert(container, items.includes(picked), `pick() returns valid item: ${picked}`);
-                
-                // Sample
-                const sampled = rng.sample(items, 3);
-                allPassed &= assert(container, sampled.length === 3, 'sample(3) returns 3 items');
-                allPassed &= assert(container, new Set(sampled).size === 3, 'sample() returns unique items');
-                log(container, `Sample(3): <span class="log-value">[${sampled.join(', ')}]</span>`);
-                
-                // Weighted pick
-                const weights = { common: 70, uncommon: 20, rare: 8, legendary: 2 };
-                const counts = { common: 0, uncommon: 0, rare: 0, legendary: 0 };
-                for (let i = 0; i < 10000; i++) {
-                    counts[rng.weightedPickObject(weights)]++;
-                }
-                
-                allPassed &= assert(container, counts.common > counts.uncommon, 
-                    `Weighted: common(${counts.common}) > uncommon(${counts.uncommon})`);
-                allPassed &= assert(container, counts.uncommon > counts.rare, 
-                    `Weighted: uncommon(${counts.uncommon}) > rare(${counts.rare})`);
-                allPassed &= assert(container, counts.rare > counts.legendary, 
-                    `Weighted: rare(${counts.rare}) > legendary(${counts.legendary})`);
-                
-            } catch (e) {
-                log(container, `Error: ${e.message}`, 'fail');
-                allPassed = false;
-            }
-            
-            setStatus('array', allPassed);
-        }
-        
-        function testGeometric() {
-            const container = createSection('geo', '📐 Geometric Utilities');
-            const seed = getSeed();
-            const algo = getAlgorithm();
-            let allPassed = true;
-            
-            try {
-                const rng = new PRNG.PRNG(seed, algo);
-                
-                // Point in circle
-                let allInCircle = true;
-                for (let i = 0; i < 1000; i++) {
-                    const p = rng.pointInCircle(10);
-                    const dist = Math.sqrt(p.x ** 2 + p.y ** 2);
-                    if (dist > 10) allInCircle = false;
-                }
-                allPassed &= assert(container, allInCircle, 'pointInCircle(10) always within radius');
-                
-                // Point on circle
-                let allOnCircle = true;
-                for (let i = 0; i < 100; i++) {
-                    const p = rng.pointOnCircle(5);
-                    const dist = Math.sqrt(p.x ** 2 + p.y ** 2);
-                    if (Math.abs(dist - 5) > 0.0001) allOnCircle = false;
-                }
-                allPassed &= assert(container, allOnCircle, 'pointOnCircle(5) always on edge');
-                
-                // Point in sphere
-                let allInSphere = true;
-                for (let i = 0; i < 1000; i++) {
-                    const p = rng.pointInSphere(1);
-                    const dist = Math.sqrt(p.x ** 2 + p.y ** 2 + p.z ** 2);
-                    if (dist > 1) allInSphere = false;
-                }
-                allPassed &= assert(container, allInSphere, 'pointInSphere(1) always within radius');
-                
-                // Point in rect
-                let allInRect = true;
-                for (let i = 0; i < 1000; i++) {
-                    const p = rng.pointInRect(10, 20, 100, 50);
-                    if (p.x < 10 || p.x >= 110 || p.y < 20 || p.y >= 70) allInRect = false;
-                }
-                allPassed &= assert(container, allInRect, 'pointInRect() always within bounds');
-                
-                // Direction vectors
-                const dir2d = rng.direction2D();
-                const len2d = Math.sqrt(dir2d.x ** 2 + dir2d.y ** 2);
-                allPassed &= assert(container, Math.abs(len2d - 1) < 0.0001, 
-                    `direction2D() is unit vector (len=${len2d.toFixed(4)})`);
-                
-                const dir3d = rng.direction3D();
-                const len3d = Math.sqrt(dir3d.x ** 2 + dir3d.y ** 2 + dir3d.z ** 2);
-                allPassed &= assert(container, Math.abs(len3d - 1) < 0.0001, 
-                    `direction3D() is unit vector (len=${len3d.toFixed(4)})`);
-                
-            } catch (e) {
-                log(container, `Error: ${e.message}`, 'fail');
-                allPassed = false;
-            }
-            
-            setStatus('geo', allPassed);
-        }
-        
-        function testSpecialGenerators() {
-            const container = createSection('special', '✨ Special Generators');
-            const seed = getSeed();
-            const algo = getAlgorithm();
-            let allPassed = true;
-            
-            try {
-                const rng = new PRNG.PRNG(seed, algo);
-                
-                // UUID
-                const uuid = rng.uuid();
-                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-                allPassed &= assert(container, uuidRegex.test(uuid), `uuid() format valid: ${uuid}`);
-                
-                // Unique UUIDs
-                const uuids = new Set();
-                for (let i = 0; i < 100; i++) uuids.add(rng.uuid());
-                allPassed &= assert(container, uuids.size === 100, 'uuid() generates unique values');
-                
-                // Color
-                const color = rng.color();
-                const colorRegex = /^#[0-9a-f]{6}$/;
-                allPassed &= assert(container, colorRegex.test(color), `color() format valid: ${color}`);
-                
-                // RGB
-                const rgb = rng.colorRGB();
-                allPassed &= assert(container, 
-                    rgb.r >= 0 && rgb.r <= 255 && rgb.g >= 0 && rgb.g <= 255 && rgb.b >= 0 && rgb.b <= 255,
-                    `colorRGB() valid: rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`);
-                
-                // HSL
-                const hsl = rng.colorHSL();
-                allPassed &= assert(container, 
-                    hsl.h >= 0 && hsl.h <= 360 && hsl.s >= 0 && hsl.s <= 100 && hsl.l >= 0 && hsl.l <= 100,
-                    `colorHSL() valid: hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`);
-                
-                // String
-                const str = rng.string(16);
-                allPassed &= assert(container, str.length === 16, `string(16) correct length: "${str}"`);
-                
-                const hexStr = rng.string(8, '0123456789abcdef');
-                allPassed &= assert(container, /^[0-9a-f]{8}$/.test(hexStr), `hex string valid: "${hexStr}"`);
-                
-            } catch (e) {
-                log(container, `Error: ${e.message}`, 'fail');
-                allPassed = false;
-            }
-            
-            setStatus('special', allPassed);
-        }
-        
-        function testNoise() {
-            const container = createSection('noise', '🌊 Noise Generators');
-            const seed = getSeed();
-            let allPassed = true;
-            
-            try {
-                // Value Noise
-                const valueNoise = new PRNG.Noise.ValueNoise(seed);
-                
-                let valueInRange = true;
-                for (let i = 0; i < 100; i++) {
-                    const v = valueNoise.noise2D(i * 0.1, i * 0.05);
-                    if (v < 0 || v > 1) valueInRange = false;
-                }
-                allPassed &= assert(container, valueInRange, 'ValueNoise.noise2D() in [0, 1]');
-                
-                // Continuity test (nearby points should be similar)
-                const v1 = valueNoise.noise2D(1.0, 1.0);
-                const v2 = valueNoise.noise2D(1.01, 1.0);
-                allPassed &= assert(container, Math.abs(v1 - v2) < 0.1, 
-                    `ValueNoise is continuous (${v1.toFixed(3)} ≈ ${v2.toFixed(3)})`);
-                
-                // Simplex Noise
-                const simplex = new PRNG.Noise.SimplexNoise(seed);
-                
-                let simplexInRange = true;
-                for (let i = 0; i < 100; i++) {
-                    const v = simplex.noise2D(i * 0.1, i * 0.05);
-                    if (v < -1 || v > 1) simplexInRange = false;
-                }
-                allPassed &= assert(container, simplexInRange, 'SimplexNoise.noise2D() in [-1, 1]');
-                
-                // fBm
-                const fbmValue = valueNoise.fbm(1.5, 2.5, null, 4, 2.0, 0.5);
-                allPassed &= assert(container, typeof fbmValue === 'number' && !isNaN(fbmValue), 
-                    `fBm works: ${fbmValue.toFixed(4)}`);
-                
-                // Reproducibility
-                const noise1 = new PRNG.Noise.ValueNoise(seed);
-                const noise2 = new PRNG.Noise.ValueNoise(seed);
-                const n1 = noise1.noise2D(5.5, 3.2);
-                const n2 = noise2.noise2D(5.5, 3.2);
-                allPassed &= assert(container, n1 === n2, 'Noise is reproducible with same seed');
-                
-            } catch (e) {
-                log(container, `Error: ${e.message}`, 'fail');
-                allPassed = false;
-            }
-            
-            setStatus('noise', allPassed);
-        }
-        
-        function testAllAlgorithms() {
-            const container = createSection('algos', '⚙️ All Algorithms');
-            const seed = getSeed();
-            let allPassed = true;
-            
-            const algorithms = ['mulberry32', 'xoshiro128', 'xorshift128', 'pcg32', 'sfc32', 'lcg'];
-            
-            for (const algo of algorithms) {
-                try {
-                    const rng = new PRNG.PRNG(seed, algo);
-                    
-                    // Basic functionality
-                    const values = [];
-                    for (let i = 0; i < 5; i++) values.push(rng.random().toFixed(4));
-                    
-                    // Reproducibility
-                    const rng2 = new PRNG.PRNG(seed, algo);
-                    let matches = true;
-                    rng.reset();
-                    for (let i = 0; i < 100; i++) {
-                        if (rng.random() !== rng2.random()) matches = false;
-                    }
-                    
-                    allPassed &= assert(container, matches, 
-                        `${algo.padEnd(12)} reproducible [${values.slice(0, 3).join(', ')}...]`);
-                        
-                } catch (e) {
-                    log(container, `❌ ${algo}: ${e.message}`, 'fail');
-                    allPassed = false;
-                }
-            }
-            
-            setStatus('algos', allPassed);
-        }
-        
-        function testVisualizations() {
-            const section = document.createElement('div');
-            section.className = 'test-section visual-section';
-            section.innerHTML = `
-                <div class="section-header">
-                    <h2>📈 Visual Tests</h2>
-                    <span class="section-status status-pass">VISUAL</span>
-                </div>
-                <div class="visual-grid">
-                    <div class="visual-item">
-                        <h3>Uniform Distribution</h3>
-                        <div class="histogram" id="uniformHist"></div>
-                    </div>
-                    <div class="visual-item">
-                        <h3>Normal Distribution</h3>
-                        <div class="histogram" id="normalHist"></div>
-                    </div>
-                    <div class="visual-item">
-                        <h3>2D Point Distribution</h3>
-                        <canvas id="pointCanvas" width="200" height="200"></canvas>
-                    </div>
-                    <div class="visual-item">
-                        <h3>2D Noise</h3>
-                        <canvas id="noiseCanvas" width="200" height="200"></canvas>
-                    </div>
-                </div>
-            `;
-            document.getElementById('testGrid').appendChild(section);
-            
-            const seed = getSeed();
-            const algo = getAlgorithm();
-            const rng = new PRNG.PRNG(seed, algo);
-            
-            // Uniform histogram
-            const uniformBins = new Array(20).fill(0);
-            for (let i = 0; i < 10000; i++) {
-                const bin = Math.floor(rng.random() * 20);
-                uniformBins[bin]++;
-            }
-            const maxUniform = Math.max(...uniformBins);
-            const uniformHist = document.getElementById('uniformHist');
-            uniformBins.forEach(count => {
-                const bar = document.createElement('div');
-                bar.className = 'histogram-bar';
-                bar.style.height = (count / maxUniform * 130) + 'px';
-                uniformHist.appendChild(bar);
-            });
-            
-            // Normal histogram
-            const normalBins = new Array(20).fill(0);
-            for (let i = 0; i < 10000; i++) {
-                const v = rng.normal(0, 1);
-                const bin = Math.floor((v + 4) / 0.4);
-                if (bin >= 0 && bin < 20) normalBins[bin]++;
-            }
-            const maxNormal = Math.max(...normalBins);
-            const normalHist = document.getElementById('normalHist');
-            normalBins.forEach(count => {
-                const bar = document.createElement('div');
-                bar.className = 'histogram-bar';
-                bar.style.height = (count / maxNormal * 130) + 'px';
-                bar.style.background = '#a371f7';
-                normalHist.appendChild(bar);
-            });
-            
-            // Point distribution
-            const pointCanvas = document.getElementById('pointCanvas');
-            const pctx = pointCanvas.getContext('2d');
-            pctx.fillStyle = '#58a6ff';
-            for (let i = 0; i < 500; i++) {
-                const p = rng.pointInCircle(90);
-                pctx.beginPath();
-                pctx.arc(100 + p.x, 100 + p.y, 2, 0, Math.PI * 2);
-                pctx.fill();
-            }
-            
-            // Noise visualization
-            const noiseCanvas = document.getElementById('noiseCanvas');
-            const nctx = noiseCanvas.getContext('2d');
-            const noise = new PRNG.Noise.SimplexNoise(seed);
-            const imageData = nctx.createImageData(200, 200);
-            
-            for (let y = 0; y < 200; y++) {
-                for (let x = 0; x < 200; x++) {
-                    const v = noise.fbm(x * 0.02, y * 0.02, null, 4, 2.0, 0.5);
-                    const c = Math.floor((v + 1) / 2 * 255);
-                    const i = (y * 200 + x) * 4;
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const v = noiseFunc(x, y, size);
+                    const c = Math.floor(Math.max(0, Math.min(1, v)) * 255);
+                    const i = (y * size + x) * 4;
                     imageData.data[i] = c;
                     imageData.data[i + 1] = c;
                     imageData.data[i + 2] = c;
                     imageData.data[i + 3] = 255;
                 }
             }
-            nctx.putImageData(imageData, 0, 0);
+            ctx.putImageData(imageData, 0, 0);
         }
         
-        function runAllTests() {
-            clearResults();
+        function renderColorCanvas(canvas, size, colorFunc) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+            const imageData = ctx.createImageData(size, size);
             
-            testBasicGeneration();
-            testReproducibility();
-            testStateManagement();
-            testDistributions();
-            testArrayUtilities();
-            testGeometric();
-            testSpecialGenerators();
-            testNoise();
-            testAllAlgorithms();
-            testVisualizations();
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const color = colorFunc(x, y, size);
+                    const i = (y * size + x) * 4;
+                    imageData.data[i] = Math.floor(Math.max(0, Math.min(255, color.r)));
+                    imageData.data[i + 1] = Math.floor(Math.max(0, Math.min(255, color.g)));
+                    imageData.data[i + 2] = Math.floor(Math.max(0, Math.min(255, color.b)));
+                    imageData.data[i + 3] = 255;
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+        
+        function registerNoise(id, title, renderFn, isColor = false) {
+            noiseRenderers[id] = (canvas, size) => {
+                if (isColor) {
+                    renderColorCanvas(canvas, size, renderFn);
+                } else {
+                    renderNoiseCanvas(canvas, size, renderFn);
+                }
+            };
+        }
+        
+        function createVisualCard(id, title, desc) {
+            return `
+                <div class="visual-card" onclick="openModal('${id}', '${title}')">
+                    <div class="visual-canvas-wrapper">
+                        <canvas id="${id}" width="200" height="200"></canvas>
+                        <div class="visual-overlay">
+                            <div class="visual-overlay-icon">🔍</div>
+                        </div>
+                    </div>
+                    <div class="visual-info">
+                        <div class="visual-title">${title}</div>
+                        <div class="visual-description">${desc}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ============================================================
+        // UNIT TESTS
+        // ============================================================
+        function runUnitTests() {
+            testResults = { passed: 0, failed: 0 };
+            const seed = getSeed();
+            const tests = [];
             
-            // Show summary
-            const summary = document.getElementById('summary');
-            summary.style.display = 'block';
+            const rng = new PRNG.PRNG(seed);
+            tests.push({ name: 'random() in [0, 1)', pass: rng.random() >= 0 && rng.random() < 1, value: '✓' });
+            tests.push({ name: 'int(5, 15) in range', pass: (() => { const i = rng.int(5, 15); return i >= 5 && i <= 15; })(), value: '✓' });
+            
+            const rng2 = new PRNG.PRNG(seed);
+            const rng3 = new PRNG.PRNG(seed);
+            tests.push({ name: 'Reproducible sequences', pass: rng2.random() === rng3.random(), value: '✓' });
+            
+            const algorithms = ['mulberry32', 'xoshiro128', 'xorshift128', 'pcg32', 'sfc32', 'lcg'];
+            algorithms.forEach(algo => {
+                const a1 = new PRNG.PRNG(seed, algo);
+                const a2 = new PRNG.PRNG(seed, algo);
+                tests.push({ name: `${algo}`, pass: a1.random() === a2.random(), value: '✓' });
+            });
+            
+            const distRng = new PRNG.PRNG(seed + '-dist');
+            tests.push({ name: 'normal()', pass: !isNaN(distRng.normal()), value: '✓' });
+            tests.push({ name: 'exponential()', pass: distRng.exponential(1) >= 0, value: '✓' });
+            tests.push({ name: 'geometric()', pass: distRng.geometric(0.3) >= 1, value: '✓' });
+            tests.push({ name: 'zipf()', pass: (() => { const z = distRng.zipf(10); return z >= 1 && z <= 10; })(), value: '✓' });
+            tests.push({ name: 'chiSquared()', pass: distRng.chiSquared(4) >= 0, value: '✓' });
+            tests.push({ name: 'studentT()', pass: !isNaN(distRng.studentT(10)), value: '✓' });
+            tests.push({ name: 'vonMises()', pass: Math.abs(distRng.vonMises(0, 2)) <= Math.PI, value: '✓' });
+            tests.push({ name: 'hypergeometric()', pass: (() => { const h = distRng.hypergeometric(50, 20, 10); return h >= 0 && h <= 10; })(), value: '✓' });
+            
+            const simplex = new PRNG.Noise.SimplexNoise(seed);
+            const billowed = new PRNG.Noise.BillowedNoise(seed);
+            tests.push({ name: 'SimplexNoise', pass: Math.abs(simplex.noise2D(1.5, 2.3)) <= 1, value: '✓' });
+            tests.push({ name: 'PerlinNoise', pass: !isNaN(new PRNG.Noise.PerlinNoise(seed).noise2D(1.5, 2.3)), value: '✓' });
+            tests.push({ name: 'WorleyNoise', pass: new PRNG.Noise.WorleyNoise(seed).noise2D(1.5, 2.3) >= 0, value: '✓' });
+            tests.push({ name: 'RidgedNoise', pass: new PRNG.Noise.RidgedNoise(seed).noise2D(1.5, 2.3) >= 0, value: '✓' });
+            tests.push({ name: 'BillowedNoise', pass: billowed.noise2D(1.5, 2.3) >= 0, value: '✓' });
+            
+            const turbVal = simplex.turbulence(5.5, 3.2, null, 4, 2, 0.5);
+            const billVal = billowed.fbm(5.5, 3.2, null, 4, 2, 0.5);
+            tests.push({ name: 'turbulence ≠ billowed', pass: Math.abs(turbVal - billVal) > 0.01, value: `Δ${Math.abs(turbVal - billVal).toFixed(3)}` });
+            
+            tests.forEach(t => t.pass ? testResults.passed++ : testResults.failed++);
+            
+            const resultsHtml = tests.map(t => `
+                <div class="test-result ${t.pass ? 'pass' : 'fail'}">
+                    <span class="test-status ${t.pass ? 'pass' : 'fail'}">${t.pass ? '✓' : '✗'}</span>
+                    <span class="test-name">${t.name}</span>
+                    <span class="test-value">${t.value}</span>
+                </div>
+            `).join('');
+            
+            createSection('🧪', 'Unit Tests', `<div class="test-results">${resultsHtml}</div>`, {
+                type: testResults.failed === 0 ? 'badge-pass' : 'badge-fail',
+                text: `${testResults.passed}/${testResults.passed + testResults.failed} PASSED`
+            });
+            
             document.getElementById('passCount').textContent = testResults.passed;
             document.getElementById('failCount').textContent = testResults.failed;
             document.getElementById('totalCount').textContent = testResults.passed + testResults.failed;
+            document.getElementById('summaryBar').classList.add('visible');
         }
         
-        // Auto-run on load
-        window.onload = runAllTests;
+        // ============================================================
+        // NOISE GALLERIES
+        // ============================================================
+        function createBaseNoiseGallery() {
+            const seed = getSeed();
+            const size = 200;
+            
+            const value = new PRNG.Noise.ValueNoise(seed);
+            const simplex = new PRNG.Noise.SimplexNoise(seed);
+            const perlin = new PRNG.Noise.PerlinNoise(seed);
+            const worley = new PRNG.Noise.WorleyNoise(seed);
+            const ridged = new PRNG.Noise.RidgedNoise(seed);
+            const billowed = new PRNG.Noise.BillowedNoise(seed);
+            
+            const noises = [
+                { id: 'n_value', title: 'Value Noise', desc: 'Interpolated random grid', fn: (x, y, s) => value.noise2D(x * 0.02, y * 0.02) },
+                { id: 'n_simplex', title: 'Simplex Noise', desc: 'Smooth gradient noise', fn: (x, y, s) => (simplex.noise2D(x * 0.02, y * 0.02) + 1) / 2 },
+                { id: 'n_perlin', title: 'Perlin Noise', desc: 'Classic gradient noise', fn: (x, y, s) => (perlin.noise2D(x * 0.02, y * 0.02) + 1) / 2 },
+                { id: 'n_worley_f1', title: 'Worley F1', desc: 'Distance to nearest point', fn: (x, y, s) => Math.min(1, worley.noise2D(x * 0.04, y * 0.04, 'euclidean', 0)) },
+                { id: 'n_worley_f2', title: 'Worley F2', desc: 'Distance to second nearest', fn: (x, y, s) => Math.min(1, worley.noise2D(x * 0.04, y * 0.04, 'euclidean', 1) * 0.7) },
+                { id: 'n_worley_edge', title: 'Worley F2-F1', desc: 'Cell edges / cracks', fn: (x, y, s) => Math.min(1, worley.noise2D(x * 0.04, y * 0.04, 'euclidean', 2) * 2.5) },
+                { id: 'n_worley_manh', title: 'Worley Manhattan', desc: 'Diamond-shaped cells', fn: (x, y, s) => Math.min(1, worley.noise2D(x * 0.04, y * 0.04, 'manhattan', 0) * 0.5) },
+                { id: 'n_worley_cheb', title: 'Worley Chebyshev', desc: 'Square cells', fn: (x, y, s) => Math.min(1, worley.noise2D(x * 0.04, y * 0.04, 'chebyshev', 0)) },
+                { id: 'n_ridged', title: 'Ridged Noise', desc: 'Sharp mountain ridges', fn: (x, y, s) => Math.min(1, ridged.noise2D(x * 0.02, y * 0.02)) },
+                { id: 'n_billowed', title: 'Billowed Noise', desc: 'Soft puffy shapes', fn: (x, y, s) => billowed.noise2D(x * 0.02, y * 0.02) },
+                { id: 'n_turbulence', title: 'Turbulence', desc: 'Chaotic swirling noise', fn: (x, y, s) => simplex.turbulence(x * 0.02, y * 0.02, null, 4, 2, 0.5) },
+            ];
+            
+            let html = '<div class="click-hint">💡 <strong>Click any image</strong> to generate a high-resolution 1024×1024 version</div>';
+            html += '<div class="visual-gallery">';
+            noises.forEach(n => { html += createVisualCard(n.id, n.title, n.desc); });
+            html += '</div>';
+            
+            createSection('🌊', 'Base Noise Types', html);
+            
+            noises.forEach(n => {
+                registerNoise(n.id, n.title, n.fn);
+                noiseRenderers[n.id](document.getElementById(n.id), size);
+            });
+        }
+        
+        function createFBMGallery() {
+            const seed = getSeed();
+            const size = 200;
+            const simplex = new PRNG.Noise.SimplexNoise(seed);
+            
+            const fbms = [
+                { id: 'fbm_1', title: '1 Octave', desc: 'Base frequency only', fn: (x, y, s) => (simplex.fbm(x * 0.015, y * 0.015, null, 1) + 1) / 2 },
+                { id: 'fbm_2', title: '2 Octaves', desc: 'Low detail', fn: (x, y, s) => (simplex.fbm(x * 0.015, y * 0.015, null, 2) + 1) / 2 },
+                { id: 'fbm_4', title: '4 Octaves', desc: 'Medium detail', fn: (x, y, s) => (simplex.fbm(x * 0.015, y * 0.015, null, 4) + 1) / 2 },
+                { id: 'fbm_6', title: '6 Octaves', desc: 'High detail', fn: (x, y, s) => (simplex.fbm(x * 0.015, y * 0.015, null, 6) + 1) / 2 },
+                { id: 'fbm_8', title: '8 Octaves', desc: 'Very high detail', fn: (x, y, s) => (simplex.fbm(x * 0.015, y * 0.015, null, 8) + 1) / 2 },
+                { id: 'fbm_rough', title: 'High Persistence', desc: 'Rougher, more detail', fn: (x, y, s) => (simplex.fbm(x * 0.015, y * 0.015, null, 6, 2, 0.7) + 1) / 2 },
+                { id: 'fbm_smooth', title: 'Low Persistence', desc: 'Smoother, less detail', fn: (x, y, s) => (simplex.fbm(x * 0.015, y * 0.015, null, 6, 2, 0.35) + 1) / 2 },
+                { id: 'fbm_warp', title: 'Domain Warp', desc: 'Distorted coordinates', fn: (x, y, s) => (simplex.warp(x * 0.012, y * 0.012, 1.5, 4) + 1) / 2 },
+                { id: 'fbm_warp2', title: 'Double Warp', desc: 'Extreme organic distortion', fn: (x, y, s) => (simplex.warp2(x * 0.01, y * 0.01, 1.5, 4) + 1) / 2 },
+            ];
+            
+            let html = '<div class="visual-gallery">';
+            fbms.forEach(n => { html += createVisualCard(n.id, n.title, n.desc); });
+            html += '</div>';
+            
+            createSection('📊', 'FBM & Domain Warping', html);
+            
+            fbms.forEach(n => {
+                registerNoise(n.id, n.title, n.fn);
+                noiseRenderers[n.id](document.getElementById(n.id), size);
+            });
+        }
+        
+        function createProceduralGallery() {
+            const seed = getSeed();
+            const size = 200;
+            
+            const simplex = new PRNG.Noise.SimplexNoise(seed);
+            const worley = new PRNG.Noise.WorleyNoise(seed);
+            const ridged = new PRNG.Noise.RidgedNoise(seed);
+            const billowed = new PRNG.Noise.BillowedNoise(seed);
+            const perlin = new PRNG.Noise.PerlinNoise(seed);
+            const simplexFire = new PRNG.Noise.SimplexNoise(seed + '_fire');
+            const simplexCloud = new PRNG.Noise.SimplexNoise(seed + '_cloud');
+            
+            const examples = [
+                { id: 'proc_height', title: 'Heightmap', desc: 'Simplex fBm terrain', fn: (x, y, s) => (simplex.fbm(x/s*3, y/s*3, null, 6) + 1) / 2 },
+                { id: 'proc_biome', title: 'Biome Map', desc: 'Elevation-based colors', fn: (x, y, s) => {
+                    const v = (simplex.fbm(x/s*3, y/s*3, null, 6) + 1) / 2;
+                    if (v < 0.35) return { r: 30, g: 60, b: 120 };
+                    if (v < 0.4) return { r: 50, g: 100, b: 180 };
+                    if (v < 0.45) return { r: 210, g: 190, b: 140 };
+                    if (v < 0.65) return { r: 34, g: 139, b: 34 };
+                    if (v < 0.8) return { r: 90, g: 90, b: 70 };
+                    return { r: 250, g: 250, b: 255 };
+                }, color: true },
+                { id: 'proc_mountain', title: 'Mountains', desc: 'Ridged multifractal', fn: (x, y, s) => {
+                    const v = Math.min(1, ridged.fbm(x/s*2.5, y/s*2.5, null, 6) / 1.5);
+                    if (v < 0.25) return { r: 34, g: 90, b: 34 };
+                    if (v < 0.5) return { r: 34 + (v-0.25)*4*60, g: 90 - (v-0.25)*4*20, b: 34 + (v-0.25)*4*25 };
+                    if (v < 0.75) return { r: 94 + (v-0.5)*4*60, g: 70 + (v-0.5)*4*50, b: 59 + (v-0.5)*4*60 };
+                    return { r: 154 + (v-0.75)*4*96, g: 120 + (v-0.75)*4*130, b: 119 + (v-0.75)*4*131 };
+                }, color: true },
+                { id: 'proc_stone', title: 'Stone Texture', desc: 'Worley + Simplex', fn: (x, y, s) => {
+                    const scale = 8 / s;
+                    const f1 = worley.noise2D(x * scale, y * scale, 'euclidean', 0);
+                    const edge = worley.noise2D(x * scale, y * scale, 'euclidean', 2);
+                    const detail = simplex.fbm(x/s*20, y/s*20, null, 3) * 0.1;
+                    const v = Math.min(1, f1 * 0.5 + edge * 0.5 + detail);
+                    const c = v * 140 + 60;
+                    return { r: c, g: c - 8, b: c - 15 };
+                }, color: true },
+                { id: 'proc_cobble', title: 'Cobblestone', desc: 'Worley cells with depth', fn: (x, y, s) => {
+                    const scale = 12 / s;
+                    const f1 = worley.noise2D(x * scale, y * scale, 'euclidean', 0);
+                    const edge = worley.noise2D(x * scale, y * scale, 'euclidean', 2);
+                    const bump = simplex.fbm(x/s*25, y/s*25, null, 2) * 0.15;
+                    const v = f1 * 0.7 + edge * 0.1 + bump;
+                    const c = Math.min(255, v * 200 + 40);
+                    return { r: c * 0.9, g: c * 0.85, b: c * 0.75 };
+                }, color: true },
+                { id: 'proc_cloud', title: 'Clouds', desc: 'Billowed fBm', fn: (x, y, s) => {
+                    const v = billowed.fbm(x/s*2.5, y/s*2.5, null, 5, 2.0, 0.55);
+                    const c = Math.min(255, v * 350);
+                    return { r: c, g: c, b: Math.min(255, c + 25) };
+                }, color: true },
+                { id: 'proc_fire', title: 'Fire / Plasma', desc: 'Turbulence gradient', fn: (x, y, s) => {
+                    const v = simplexFire.turbulence(x/s*4, y/s*4, null, 6, 2.2, 0.5);
+                    if (v < 0.2) return { r: 10, g: 0, b: 5 };
+                    if (v < 0.35) return { r: 120, g: 15, b: 0 };
+                    if (v < 0.5) return { r: 200, g: 50, b: 0 };
+                    if (v < 0.65) return { r: 255, g: 100, b: 10 };
+                    return { r: 255, g: 200, b: 100 };
+                }, color: true },
+                { id: 'proc_lava', title: 'Lava', desc: 'Worley + turbulence', fn: (x, y, s) => {
+                    const scale = 6 / s;
+                    const cell = worley.noise2D(x * scale, y * scale, 'euclidean', 0);
+                    const turb = simplexFire.turbulence(x/s*5, y/s*5, null, 4, 2, 0.5);
+                    const v = cell * 0.6 + turb * 0.4;
+                    if (v < 0.3) return { r: 20, g: 5, b: 0 };
+                    if (v < 0.5) return { r: 150, g: 30, b: 0 };
+                    if (v < 0.7) return { r: 255, g: 100, b: 0 };
+                    return { r: 255, g: 200, b: 50 };
+                }, color: true },
+                { id: 'proc_marble', title: 'Marble', desc: 'Warped stripes', fn: (x, y, s) => {
+                    const warp = simplex.warp(x/s*3, y/s*3, 2.5, 4);
+                    const stripe = Math.sin((x/s*8 + warp * 4) * Math.PI);
+                    const v = (stripe + 1) / 2;
+                    const c = 200 + v * 45;
+                    return { r: c, g: c - 5, b: c - 3 };
+                }, color: true },
+                { id: 'proc_wood', title: 'Wood Grain', desc: 'Ring pattern + noise', fn: (x, y, s) => {
+                    const cx = s / 2, cy = s / 2;
+                    const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+                    const noise = perlin.fbm(x/s*4, y/s*4, null, 3) * 15;
+                    const ring = Math.sin((dist / s * 30 + noise) * 0.5);
+                    const v = (ring + 1) / 2;
+                    return { r: 139 + v * 50, g: 90 + v * 40, b: 43 + v * 30 };
+                }, color: true },
+                { id: 'proc_leather', title: 'Leather', desc: 'Worley cells + bumps', fn: (x, y, s) => {
+                    const scale = 10 / s;
+                    const cell = worley.noise2D(x * scale, y * scale, 'euclidean', 0);
+                    const edge = worley.noise2D(x * scale, y * scale, 'euclidean', 2);
+                    const bump = simplex.fbm(x/s*16, y/s*16, null, 3) * 0.15;
+                    const v = Math.min(1, cell * 0.6 + edge * 0.3 + bump + 0.1);
+                    return { r: 80 + v * 80, g: 50 + v * 50, b: 30 + v * 30 };
+                }, color: true },
+                { id: 'proc_scales', title: 'Dragon Scales', desc: 'Worley manhattan', fn: (x, y, s) => {
+                    const scale = 15 / s;
+                    const cell = worley.noise2D(x * scale, y * scale, 'manhattan', 0);
+                    const edge = worley.noise2D(x * scale, y * scale, 'manhattan', 2);
+                    const v = cell * 0.7 + edge * 0.3;
+                    return { r: 20 + v * 60, g: 80 + v * 80, b: 40 + v * 50 };
+                }, color: true },
+                { id: 'proc_alien', title: 'Alien Surface', desc: 'Double domain warp', fn: (x, y, s) => {
+                    const v = (simplex.warp2(x/s*2.5, y/s*2.5, 2.0, 4) + 1) / 2;
+                    if (v < 0.25) return { r: 15, g: 60, b: 50 };
+                    if (v < 0.45) return { r: 80, g: 30, b: 100 };
+                    if (v < 0.65) return { r: 180, g: 80, b: 40 };
+                    return { r: 255, g: 180, b: 80 };
+                }, color: true },
+                { id: 'proc_ice', title: 'Ice / Frost', desc: 'Worley + blue tint', fn: (x, y, s) => {
+                    const scale = 6 / s;
+                    const cell = worley.noise2D(x * scale, y * scale, 'euclidean', 0);
+                    const edge = worley.noise2D(x * scale, y * scale, 'euclidean', 2);
+                    const v = cell * 0.5 + edge * 0.5;
+                    return { r: 180 + v * 60, g: 200 + v * 50, b: 230 + v * 25 };
+                }, color: true },
+                { id: 'proc_camo', title: 'Camouflage', desc: 'Thresholded warp', fn: (x, y, s) => {
+                    const v = (simplex.warp(x/s*4, y/s*4, 1.5, 3) + 1) / 2;
+                    if (v < 0.33) return { r: 34, g: 50, b: 28 };
+                    if (v < 0.66) return { r: 85, g: 107, b: 47 };
+                    return { r: 139, g: 137, b: 112 };
+                }, color: true },
+                { id: 'proc_water', title: 'Water Caustics', desc: 'Layered simplex', fn: (x, y, s) => {
+                    const v1 = (simplex.noise2D(x/s*8, y/s*8) + 1) / 2;
+                    const v2 = (simplex.noise2D(x/s*12 + 5, y/s*12 + 5) + 1) / 2;
+                    const v = (v1 + v2) / 2;
+                    return { r: 20 + v * 40, g: 80 + v * 100, b: 140 + v * 80 };
+                }, color: true },
+                { id: 'proc_rust', title: 'Rust / Corrosion', desc: 'Worley + noise', fn: (x, y, s) => {
+                    const scale = 8 / s;
+                    const w = worley.noise2D(x * scale, y * scale, 'euclidean', 2);
+                    const n = simplex.fbm(x/s*10, y/s*10, null, 4);
+                    const v = w * 0.5 + (n + 1) / 2 * 0.5;
+                    return { r: 120 + v * 80, g: 60 + v * 40, b: 30 + v * 20 };
+                }, color: true },
+                { id: 'proc_galaxy', title: 'Galaxy / Nebula', desc: 'Warp + color bands', fn: (x, y, s) => {
+                    const v = (simplex.warp2(x/s*2, y/s*2, 2, 4) + 1) / 2;
+                    const stars = simplex.noise2D(x/s*50, y/s*50) > 0.8 ? 1 : 0;
+                    if (v < 0.3) return { r: 10 + stars*200, g: 5 + stars*200, b: 30 + stars*200 };
+                    if (v < 0.5) return { r: 60, g: 20, b: 100 };
+                    if (v < 0.7) return { r: 150, g: 50, b: 100 };
+                    return { r: 200, g: 100, b: 150 };
+                }, color: true },
+            ];
+            
+            let html = '<div class="visual-gallery">';
+            examples.forEach(n => { html += createVisualCard(n.id, n.title, n.desc); });
+            html += '</div>';
+            
+            createSection('🎨', 'Procedural Textures', html);
+            
+            examples.forEach(n => {
+                registerNoise(n.id, n.title, n.fn, n.color);
+                noiseRenderers[n.id](document.getElementById(n.id), size);
+            });
+        }
+        
+        function createDistributionCharts() {
+            const seed = getSeed();
+            const width = 400, height = 220;
+            const padding = { top: 20, right: 20, bottom: 35, left: 45 };
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            
+            const distributions = [
+                { name: 'Uniform', desc: 'Equal probability', fn: (rng) => rng.random(), min: 0, max: 1 },
+                { name: 'Normal', desc: 'Bell curve μ=0.5 σ=0.12', fn: (rng) => rng.normal(0.5, 0.12), min: 0, max: 1 },
+                { name: 'Exponential', desc: 'Decay λ=4', fn: (rng) => rng.exponential(4), min: 0, max: 1.5 },
+                { name: 'Beta (2, 5)', desc: 'Skewed low', fn: (rng) => rng.beta(2, 5), min: 0, max: 1 },
+                { name: 'Triangular', desc: 'Peak at 0.7', fn: (rng) => rng.triangular(0, 1, 0.7), min: 0, max: 1 },
+                { name: 'Zipf (n=30)', desc: 'Power law', fn: (rng) => rng.zipf(30) / 30, min: 0, max: 1 },
+            ];
+            
+            let html = '<div class="distribution-grid">';
+            distributions.forEach((d, i) => {
+                html += `
+                    <div class="distribution-card">
+                        <div class="distribution-header">
+                            <span class="distribution-name">${d.name}</span>
+                            <span class="distribution-samples">10,000 samples</span>
+                        </div>
+                        <canvas id="dist${i}" width="${width}" height="${height}"></canvas>
+                        <div class="distribution-desc">${d.desc}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            createSection('📈', 'Statistical Distributions', html);
+            
+            distributions.forEach((d, i) => {
+                const rng = new PRNG.PRNG(seed + `_dist${i}`);
+                const canvas = document.getElementById(`dist${i}`);
+                const ctx = canvas.getContext('2d');
+                
+                ctx.fillStyle = '#0d0d14';
+                ctx.fillRect(0, 0, width, height);
+                
+                const samples = Array.from({ length: 10000 }, () => d.fn(rng));
+                const bins = 60;
+                const histogram = new Array(bins).fill(0);
+                const range = d.max - d.min;
+                
+                samples.forEach(v => {
+                    const normalized = (v - d.min) / range;
+                    const bin = Math.floor(Math.max(0, Math.min(0.999, normalized)) * bins);
+                    histogram[bin]++;
+                });
+                
+                const maxCount = Math.max(...histogram);
+                const barWidth = chartWidth / bins;
+                
+                // Grid
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.lineWidth = 1;
+                for (let j = 0; j <= 4; j++) {
+                    const y = padding.top + (chartHeight / 4) * j;
+                    ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(width - padding.right, y); ctx.stroke();
+                }
+                
+                // Bars
+                histogram.forEach((count, j) => {
+                    if (count === 0) return;
+                    const barHeight = (count / maxCount) * chartHeight;
+                    const x = padding.left + j * barWidth;
+                    const y = height - padding.bottom - barHeight;
+                    
+                    const gradient = ctx.createLinearGradient(x, y + barHeight, x, y);
+                    gradient.addColorStop(0, '#4f46e5');
+                    gradient.addColorStop(1, '#8b5cf6');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.roundRect(x + 1, y, barWidth - 2, barHeight, [2, 2, 0, 0]);
+                    ctx.fill();
+                });
+                
+                // Axes
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, padding.top);
+                ctx.lineTo(padding.left, height - padding.bottom);
+                ctx.lineTo(width - padding.right, height - padding.bottom);
+                ctx.stroke();
+                
+                // Labels
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.font = '10px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                for (let j = 0; j <= 5; j++) {
+                    const x = padding.left + (chartWidth / 5) * j;
+                    ctx.fillText((d.min + (range / 5) * j).toFixed(1), x, height - padding.bottom + 8);
+                }
+                
+                // Mean line
+                const mean = samples.reduce((a, b) => a + b) / samples.length;
+                const meanX = padding.left + ((mean - d.min) / range) * chartWidth;
+                if (meanX >= padding.left && meanX <= width - padding.right) {
+                    ctx.strokeStyle = '#f59e0b';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 3]);
+                    ctx.beginPath(); ctx.moveTo(meanX, padding.top); ctx.lineTo(meanX, height - padding.bottom); ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.font = 'bold 9px "JetBrains Mono", monospace';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(`μ=${mean.toFixed(3)}`, meanX + 4, padding.top + 4);
+                }
+            });
+        }
+        
+        // ============================================================
+        // PRNG VISUALIZATIONS
+        // ============================================================
+        function createPRNGDemos() {
+            const seed = getSeed();
+            const size = 300;
+            
+            let html = `
+                <div class="prng-demo-grid">
+                    <div class="prng-demo-card">
+                        <div class="prng-demo-header">
+                            <span class="prng-demo-title">🎲 Random Numbers</span>
+                        </div>
+                        <div class="prng-demo-content" id="randomNumbers"></div>
+                    </div>
+                    <div class="prng-demo-card">
+                        <div class="prng-demo-header">
+                            <span class="prng-demo-title">🔀 Shuffle Demo</span>
+                        </div>
+                        <div class="prng-demo-content" id="shuffleDemo"></div>
+                    </div>
+                    <div class="prng-demo-card">
+                        <div class="prng-demo-header">
+                            <span class="prng-demo-title">🎨 Random Colors</span>
+                        </div>
+                        <div class="prng-demo-content" id="colorDemo"></div>
+                    </div>
+                    <div class="prng-demo-card">
+                        <div class="prng-demo-header">
+                            <span class="prng-demo-title">🔑 UUID Generation</span>
+                        </div>
+                        <div class="prng-demo-content prng-mono" id="uuidDemo"></div>
+                    </div>
+                    <div class="prng-demo-card wide">
+                        <div class="prng-demo-header">
+                            <span class="prng-demo-title">⚡ Algorithm Comparison</span>
+                            <span class="prng-demo-subtitle">Same seed, different algorithms</span>
+                        </div>
+                        <div class="prng-demo-content" id="algorithmDemo"></div>
+                    </div>
+                </div>
+                <div class="prng-canvas-grid">
+                    <div class="prng-canvas-card">
+                        <div class="prng-canvas-header">Uniform Points</div>
+                        <canvas id="canvasUniform" width="${size}" height="${size}"></canvas>
+                        <div class="prng-canvas-desc">random() × random()</div>
+                    </div>
+                    <div class="prng-canvas-card">
+                        <div class="prng-canvas-header">Disk Distribution</div>
+                        <canvas id="canvasDisk" width="${size}" height="${size}"></canvas>
+                        <div class="prng-canvas-desc">pointInCircle()</div>
+                    </div>
+                    <div class="prng-canvas-card">
+                        <div class="prng-canvas-header">Gaussian Cluster</div>
+                        <canvas id="canvasGaussian" width="${size}" height="${size}"></canvas>
+                        <div class="prng-canvas-desc">normal(0.5, 0.15) × 2</div>
+                    </div>
+                    <div class="prng-canvas-card">
+                        <div class="prng-canvas-header">Poisson Disk</div>
+                        <canvas id="canvasPoisson" width="${size}" height="${size}"></canvas>
+                        <div class="prng-canvas-desc">Minimum distance sampling</div>
+                    </div>
+                    <div class="prng-canvas-card">
+                        <div class="prng-canvas-header">Weighted Selection</div>
+                        <canvas id="canvasWeighted" width="${size}" height="${size}"></canvas>
+                        <div class="prng-canvas-desc">weightedPick() distribution</div>
+                    </div>
+                    <div class="prng-canvas-card">
+                        <div class="prng-canvas-header">Sphere Projection</div>
+                        <canvas id="canvasSphere" width="${size}" height="${size}"></canvas>
+                        <div class="prng-canvas-desc">pointOnSphere() → 2D</div>
+                    </div>
+                </div>
+            `;
+            
+            // Add styles
+            const style = document.createElement('style');
+            style.textContent = `
+                .prng-demo-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 16px;
+                    margin-bottom: 24px;
+                }
+                .prng-demo-card {
+                    background: var(--bg-tertiary);
+                    border-radius: var(--radius-md);
+                    border: 1px solid var(--border-subtle);
+                    overflow: hidden;
+                }
+                .prng-demo-card.wide {
+                    grid-column: 1 / -1;
+                }
+                .prng-demo-header {
+                    padding: 12px 16px;
+                    background: var(--bg-elevated);
+                    border-bottom: 1px solid var(--border-subtle);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .prng-demo-title {
+                    font-weight: 600;
+                    font-size: 0.95rem;
+                }
+                .prng-demo-subtitle {
+                    font-size: 0.75rem;
+                    color: var(--text-muted);
+                }
+                .prng-demo-content {
+                    padding: 16px;
+                    font-size: 0.9rem;
+                    line-height: 1.8;
+                }
+                .prng-demo-content.prng-mono {
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.8rem;
+                }
+                .prng-value {
+                    display: inline-block;
+                    background: var(--bg-elevated);
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                    margin: 3px;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.85rem;
+                }
+                .prng-shuffle-item {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 36px;
+                    height: 36px;
+                    background: var(--gradient-primary);
+                    border-radius: 6px;
+                    margin: 3px;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                }
+                .prng-color-swatch {
+                    display: inline-block;
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 8px;
+                    margin: 4px;
+                    border: 2px solid var(--border-default);
+                }
+                .prng-uuid {
+                    display: block;
+                    padding: 6px 0;
+                    color: var(--text-secondary);
+                    border-bottom: 1px solid var(--border-subtle);
+                }
+                .prng-uuid:last-child {
+                    border-bottom: none;
+                }
+                .prng-algo-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 8px 0;
+                    border-bottom: 1px solid var(--border-subtle);
+                }
+                .prng-algo-row:last-child {
+                    border-bottom: none;
+                }
+                .prng-algo-name {
+                    width: 100px;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    color: var(--accent-primary);
+                }
+                .prng-algo-values {
+                    flex: 1;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.75rem;
+                    color: var(--text-secondary);
+                    overflow-x: auto;
+                    white-space: nowrap;
+                }
+                .prng-canvas-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 20px;
+                }
+                .prng-canvas-card {
+                    background: var(--bg-tertiary);
+                    border-radius: var(--radius-md);
+                    border: 1px solid var(--border-subtle);
+                    overflow: hidden;
+                    text-align: center;
+                }
+                .prng-canvas-header {
+                    padding: 10px;
+                    background: var(--bg-elevated);
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    border-bottom: 1px solid var(--border-subtle);
+                }
+                .prng-canvas-card canvas {
+                    display: block;
+                    width: 100%;
+                    aspect-ratio: 1;
+                    background: var(--bg-primary);
+                }
+                .prng-canvas-desc {
+                    padding: 8px;
+                    font-size: 0.8rem;
+                    color: var(--text-muted);
+                    font-family: 'JetBrains Mono', monospace;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            createSection('🎰', 'PRNG Demonstrations', html);
+            
+            const rng = new PRNG.PRNG(seed);
+            
+            // Random Numbers
+            const randomNums = Array.from({ length: 12 }, () => rng.random().toFixed(6));
+            document.getElementById('randomNumbers').innerHTML = randomNums.map(n => `<span class="prng-value">${n}</span>`).join('');
+            
+            // Shuffle Demo
+            const original = [1, 2, 3, 4, 5, 6, 7, 8];
+            const shuffled = [...original];
+            rng.shuffle(shuffled);
+            document.getElementById('shuffleDemo').innerHTML = `
+                <div style="margin-bottom: 8px; color: var(--text-muted); font-size: 0.8rem;">Original: [${original.join(', ')}]</div>
+                <div>${shuffled.map(n => `<span class="prng-shuffle-item">${n}</span>`).join('')}</div>
+            `;
+            
+            // Color Demo
+            const colors = Array.from({ length: 10 }, () => {
+                const h = rng.int(0, 360);
+                const s = rng.int(60, 90);
+                const l = rng.int(45, 65);
+                return `hsl(${h}, ${s}%, ${l}%)`;
+            });
+            document.getElementById('colorDemo').innerHTML = colors.map(c => `<span class="prng-color-swatch" style="background: ${c}"></span>`).join('');
+            
+            // UUID Demo
+            const uuids = Array.from({ length: 5 }, () => rng.uuid());
+            document.getElementById('uuidDemo').innerHTML = uuids.map(u => `<span class="prng-uuid">${u}</span>`).join('');
+            
+            // Algorithm Comparison
+            const algorithms = ['mulberry32', 'xoshiro128', 'xorshift128', 'pcg32', 'sfc32', 'lcg'];
+            const algoHtml = algorithms.map(algo => {
+                const algoRng = new PRNG.PRNG(seed, algo);
+                const values = Array.from({ length: 8 }, () => algoRng.random().toFixed(6));
+                return `
+                    <div class="prng-algo-row">
+                        <span class="prng-algo-name">${algo}</span>
+                        <span class="prng-algo-values">${values.join('  ')}</span>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('algorithmDemo').innerHTML = algoHtml;
+            
+            // Canvas visualizations
+            const canvasRng = new PRNG.PRNG(seed + '_canvas');
+            
+            // Uniform Points
+            const ctxUniform = document.getElementById('canvasUniform').getContext('2d');
+            ctxUniform.fillStyle = '#0a0a0f';
+            ctxUniform.fillRect(0, 0, size, size);
+            ctxUniform.fillStyle = '#6366f1';
+            for (let i = 0; i < 1000; i++) {
+                const x = canvasRng.random() * size;
+                const y = canvasRng.random() * size;
+                ctxUniform.beginPath();
+                ctxUniform.arc(x, y, 2, 0, Math.PI * 2);
+                ctxUniform.fill();
+            }
+            
+            // Disk Distribution
+            const ctxDisk = document.getElementById('canvasDisk').getContext('2d');
+            ctxDisk.fillStyle = '#0a0a0f';
+            ctxDisk.fillRect(0, 0, size, size);
+            ctxDisk.fillStyle = '#8b5cf6';
+            for (let i = 0; i < 1000; i++) {
+                const p = canvasRng.pointInCircle();
+                const x = (p.x + 1) / 2 * size * 0.9 + size * 0.05;
+                const y = (p.y + 1) / 2 * size * 0.9 + size * 0.05;
+                ctxDisk.beginPath();
+                ctxDisk.arc(x, y, 2, 0, Math.PI * 2);
+                ctxDisk.fill();
+            }
+            
+            // Gaussian Cluster
+            const ctxGaussian = document.getElementById('canvasGaussian').getContext('2d');
+            ctxGaussian.fillStyle = '#0a0a0f';
+            ctxGaussian.fillRect(0, 0, size, size);
+            ctxGaussian.fillStyle = '#a855f7';
+            for (let i = 0; i < 1000; i++) {
+                const x = canvasRng.normal(0.5, 0.15) * size;
+                const y = canvasRng.normal(0.5, 0.15) * size;
+                if (x >= 0 && x < size && y >= 0 && y < size) {
+                    ctxGaussian.beginPath();
+                    ctxGaussian.arc(x, y, 2, 0, Math.PI * 2);
+                    ctxGaussian.fill();
+                }
+            }
+            
+            // Poisson Disk Sampling
+            const ctxPoisson = document.getElementById('canvasPoisson').getContext('2d');
+            ctxPoisson.fillStyle = '#0a0a0f';
+            ctxPoisson.fillRect(0, 0, size, size);
+            ctxPoisson.fillStyle = '#10b981';
+            const poissonPoints = [];
+            const minDist = 15;
+            const attempts = 30;
+            
+            // Start with a random point
+            poissonPoints.push({ x: canvasRng.random() * size, y: canvasRng.random() * size });
+            const activeList = [0];
+            
+            while (activeList.length > 0 && poissonPoints.length < 500) {
+                const idx = canvasRng.int(0, activeList.length - 1);
+                const point = poissonPoints[activeList[idx]];
+                let found = false;
+                
+                for (let i = 0; i < attempts; i++) {
+                    const angle = canvasRng.random() * Math.PI * 2;
+                    const dist = minDist + canvasRng.random() * minDist;
+                    const newX = point.x + Math.cos(angle) * dist;
+                    const newY = point.y + Math.sin(angle) * dist;
+                    
+                    if (newX >= 0 && newX < size && newY >= 0 && newY < size) {
+                        let valid = true;
+                        for (const p of poissonPoints) {
+                            const dx = p.x - newX;
+                            const dy = p.y - newY;
+                            if (dx * dx + dy * dy < minDist * minDist) {
+                                valid = false;
+                                break;
+                            }
+                        }
+                        if (valid) {
+                            poissonPoints.push({ x: newX, y: newY });
+                            activeList.push(poissonPoints.length - 1);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!found) {
+                    activeList.splice(idx, 1);
+                }
+            }
+            
+            for (const p of poissonPoints) {
+                ctxPoisson.beginPath();
+                ctxPoisson.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctxPoisson.fill();
+            }
+            
+            // Weighted Selection
+            const ctxWeighted = document.getElementById('canvasWeighted').getContext('2d');
+            ctxWeighted.fillStyle = '#0a0a0f';
+            ctxWeighted.fillRect(0, 0, size, size);
+            
+            const categories = [
+                { color: '#ef4444', weight: 1 },
+                { color: '#f59e0b', weight: 2 },
+                { color: '#10b981', weight: 4 },
+                { color: '#6366f1', weight: 8 },
+                { color: '#8b5cf6', weight: 16 },
+            ];
+            const items = [0, 1, 2, 3, 4];
+            const weights = categories.map(c => c.weight);
+            const counts = new Array(categories.length).fill(0);
+            
+            for (let i = 0; i < 2000; i++) {
+                const idx = canvasRng.weightedPick(items, weights);
+                counts[idx]++;
+            }
+            
+            const maxCount = Math.max(...counts);
+            const barWidth = size / categories.length;
+            categories.forEach((cat, i) => {
+                const barHeight = (counts[i] / maxCount) * (size - 40);
+                ctxWeighted.fillStyle = cat.color;
+                ctxWeighted.fillRect(i * barWidth + 10, size - barHeight - 20, barWidth - 20, barHeight);
+                ctxWeighted.fillStyle = '#fff';
+                ctxWeighted.font = '11px "JetBrains Mono"';
+                ctxWeighted.textAlign = 'center';
+                ctxWeighted.fillText(`w=${cat.weight}`, i * barWidth + barWidth / 2, size - 5);
+            });
+            
+            // Sphere Projection
+            const ctxSphere = document.getElementById('canvasSphere').getContext('2d');
+            ctxSphere.fillStyle = '#0a0a0f';
+            ctxSphere.fillRect(0, 0, size, size);
+            
+            // Draw sphere outline
+            ctxSphere.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctxSphere.lineWidth = 1;
+            ctxSphere.beginPath();
+            ctxSphere.arc(size / 2, size / 2, size * 0.4, 0, Math.PI * 2);
+            ctxSphere.stroke();
+            
+            for (let i = 0; i < 800; i++) {
+                const p = canvasRng.pointOnSphere();
+                // Simple orthographic projection
+                const x = (p.x + 1) / 2 * size * 0.8 + size * 0.1;
+                const y = (p.y + 1) / 2 * size * 0.8 + size * 0.1;
+                // Use z for color depth
+                const brightness = Math.floor((p.z + 1) / 2 * 155 + 100);
+                ctxSphere.fillStyle = `rgb(${brightness}, ${Math.floor(brightness * 0.7)}, ${Math.floor(brightness * 1.2)})`;
+                ctxSphere.beginPath();
+                ctxSphere.arc(x, y, 2.5, 0, Math.PI * 2);
+                ctxSphere.fill();
+            }
+        }
+        
+        // ============================================================
+        // MAIN
+        // ============================================================
+        async function runUnitTestsOnly() {
+            showLoading();
+            setProgress(0);
+            clearContent();
+            setLoadingStatus('Running unit tests...');
+            await delay(200);
+            runUnitTests();
+            setProgress(100);
+            await delay(200);
+            hideLoading();
+        }
+        
+        async function runAllTests() {
+            showLoading();
+            setProgress(0);
+            clearContent();
+            testResults = { passed: 0, failed: 0 };
+            
+            setLoadingStatus('Running unit tests...');
+            await delay(50);
+            runUnitTests();
+            setProgress(8);
+            
+            setLoadingStatus('Creating PRNG demonstrations...');
+            await delay(50);
+            createPRNGDemos();
+            setProgress(20);
+            
+            setLoadingStatus('Creating distribution charts...');
+            await delay(50);
+            createDistributionCharts();
+            setProgress(32);
+            
+            setLoadingStatus('Generating base noise types...');
+            await delay(50);
+            createBaseNoiseGallery();
+            setProgress(50);
+            
+            setLoadingStatus('Generating FBM examples...');
+            await delay(50);
+            createFBMGallery();
+            setProgress(68);
+            
+            setLoadingStatus('Rendering procedural textures...');
+            await delay(50);
+            createProceduralGallery();
+            setProgress(100);
+            
+            setLoadingStatus('Complete!');
+            await delay(300);
+            hideLoading();
+        }
+        
+        window.onload = function() {
+            randomizeSeed();
+            runAllTests();
+        };
     </script>
 </body>
 </html>

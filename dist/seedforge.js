@@ -3,7 +3,7 @@
  * A comprehensive pseudo-random number generator library with multiple algorithms,
  * statistical distributions, and utility functions for procedural generation.
  * 
- * @version 1.0.0
+ * @version 1.1.0
  * @license MIT
  */
 
@@ -784,6 +784,128 @@
             return location + scale * Math.tan(Math.PI * (this.random() - 0.5));
         }
 
+        /**
+         * Geometric distribution - number of trials until first success
+         * @param {number} p - Probability of success (0 < p <= 1)
+         * @returns {number} Number of trials (1, 2, 3, ...)
+         */
+        geometric(p) {
+            if (p <= 0 || p > 1) {
+                throw new Error('Probability must be in (0, 1]');
+            }
+            return Math.ceil(Math.log(1 - this.random()) / Math.log(1 - p));
+        }
+
+        /**
+         * Zipf distribution - power law for rankings (word frequencies, city sizes)
+         * @param {number} n - Number of elements (max rank)
+         * @param {number} s - Exponent parameter (typically 1.0)
+         * @returns {number} Rank from 1 to n
+         */
+        zipf(n, s = 1) {
+            if (n < 1) throw new Error('n must be >= 1');
+            if (s < 0) throw new Error('s must be >= 0');
+            
+            // Calculate normalization constant (generalized harmonic number)
+            let hns = 0;
+            for (let i = 1; i <= n; i++) {
+                hns += 1 / Math.pow(i, s);
+            }
+            
+            const u = this.random();
+            let sum = 0;
+            for (let k = 1; k <= n; k++) {
+                sum += 1 / (Math.pow(k, s) * hns);
+                if (sum >= u) return k;
+            }
+            return n;
+        }
+
+        /**
+         * Chi-squared distribution
+         * @param {number} k - Degrees of freedom (positive integer)
+         * @returns {number} Chi-squared distributed value
+         */
+        chiSquared(k) {
+            if (k < 1) throw new Error('Degrees of freedom must be >= 1');
+            // Chi-squared is a special case of gamma distribution
+            return this.gamma(k / 2, 2);
+        }
+
+        /**
+         * Student's t-distribution
+         * @param {number} df - Degrees of freedom
+         * @returns {number} t-distributed value
+         */
+        studentT(df) {
+            if (df <= 0) throw new Error('Degrees of freedom must be positive');
+            // t = Z / sqrt(V/df) where Z ~ N(0,1) and V ~ chi-squared(df)
+            const z = this.normal();
+            const v = this.chiSquared(df);
+            return z / Math.sqrt(v / df);
+        }
+
+        /**
+         * Von Mises distribution - circular/directional distribution
+         * @param {number} mu - Mean direction in radians
+         * @param {number} kappa - Concentration parameter (0 = uniform, higher = more concentrated)
+         * @returns {number} Angle in radians [-π, π]
+         */
+        vonMises(mu = 0, kappa = 1) {
+            if (kappa < 0) throw new Error('Kappa must be non-negative');
+            
+            if (kappa === 0) {
+                // Uniform distribution on circle
+                return (this.random() * 2 - 1) * Math.PI;
+            }
+            
+            // Best-Fisher algorithm
+            const tau = 1 + Math.sqrt(1 + 4 * kappa * kappa);
+            const rho = (tau - Math.sqrt(2 * tau)) / (2 * kappa);
+            const r = (1 + rho * rho) / (2 * rho);
+            
+            while (true) {
+                const u1 = this.random();
+                const z = Math.cos(Math.PI * u1);
+                const f = (1 + r * z) / (r + z);
+                const c = kappa * (r - f);
+                
+                const u2 = this.random();
+                if (u2 < c * (2 - c) || u2 <= c * Math.exp(1 - c)) {
+                    const u3 = this.random();
+                    const theta = (u3 > 0.5) ? Math.acos(f) : -Math.acos(f);
+                    return ((theta + mu + Math.PI) % (2 * Math.PI)) - Math.PI;
+                }
+            }
+        }
+
+        /**
+         * Hypergeometric distribution - sampling without replacement
+         * @param {number} N - Population size
+         * @param {number} K - Number of success states in population
+         * @param {number} n - Number of draws
+         * @returns {number} Number of successes in the sample
+         */
+        hypergeometric(N, K, n) {
+            if (N < 0 || K < 0 || n < 0) throw new Error('Parameters must be non-negative');
+            if (K > N) throw new Error('K cannot exceed N');
+            if (n > N) throw new Error('n cannot exceed N');
+            
+            let successes = 0;
+            let population = N;
+            let successesLeft = K;
+            
+            for (let i = 0; i < n; i++) {
+                if (this.random() < successesLeft / population) {
+                    successes++;
+                    successesLeft--;
+                }
+                population--;
+            }
+            
+            return successes;
+        }
+
         // --------------------------------------------------------
         // ARRAY UTILITIES
         // --------------------------------------------------------
@@ -1420,6 +1542,452 @@
             
             return value / maxValue;
         }
+
+        /**
+         * Turbulence - absolute value noise for fire, smoke effects
+         * Different from billowed: no normalization, frequency-based offsets create swirling patterns
+         */
+        turbulence(x, y = null, z = null, octaves = 4, lacunarity = 2, persistence = 0.5) {
+            let value = 0;
+            let amplitude = 1;
+            let frequency = 1;
+            
+            for (let i = 0; i < octaves; i++) {
+                // Add offset based on octave to create swirling effect
+                const ox = x * frequency + i * 1.7;
+                const oy = y !== null ? y * frequency + i * 2.3 : null;
+                const oz = z !== null ? z * frequency + i * 3.1 : null;
+                
+                let noise;
+                if (oz !== null) {
+                    noise = this.noise3D(ox, oy, oz);
+                } else if (oy !== null) {
+                    noise = this.noise2D(ox, oy);
+                }
+                // Use absolute value but don't square - creates sharper features
+                value += amplitude * Math.abs(noise);
+                
+                amplitude *= persistence;
+                frequency *= lacunarity;
+            }
+            
+            // Don't normalize - let values accumulate for more dramatic effect
+            // Clamp to reasonable range
+            return Math.min(1, value * 0.7);
+        }
+
+        /**
+         * Domain warping - distort coordinates using noise
+         */
+        warp(x, y, warpStrength = 1, octaves = 4) {
+            const qx = this.fbm(x, y, null, octaves);
+            const qy = this.fbm(x + 5.2, y + 1.3, null, octaves);
+            
+            return this.fbm(
+                x + warpStrength * qx,
+                y + warpStrength * qy,
+                null,
+                octaves
+            );
+        }
+
+        /**
+         * Double domain warping for more complex patterns
+         */
+        warp2(x, y, warpStrength = 1, octaves = 4) {
+            const qx = this.fbm(x, y, null, octaves);
+            const qy = this.fbm(x + 5.2, y + 1.3, null, octaves);
+            
+            const rx = this.fbm(x + warpStrength * qx + 1.7, y + warpStrength * qy + 9.2, null, octaves);
+            const ry = this.fbm(x + warpStrength * qx + 8.3, y + warpStrength * qy + 2.8, null, octaves);
+            
+            return this.fbm(
+                x + warpStrength * rx,
+                y + warpStrength * ry,
+                null,
+                octaves
+            );
+        }
+    }
+
+    /**
+     * Classic Perlin Noise implementation
+     */
+    class PerlinNoise {
+        constructor(seed = Date.now()) {
+            this.rng = new PRNG(seed, 'xoshiro128');
+            this.perm = new Uint8Array(512);
+            
+            const p = Array.from({ length: 256 }, (_, i) => i);
+            this.rng.shuffle(p);
+            
+            for (let i = 0; i < 512; i++) {
+                this.perm[i] = p[i & 255];
+            }
+        }
+
+        static grad3 = [
+            [1,1,0], [-1,1,0], [1,-1,0], [-1,-1,0],
+            [1,0,1], [-1,0,1], [1,0,-1], [-1,0,-1],
+            [0,1,1], [0,-1,1], [0,1,-1], [0,-1,-1]
+        ];
+
+        _fade(t) {
+            return t * t * t * (t * (t * 6 - 15) + 10);
+        }
+
+        _lerp(a, b, t) {
+            return a + t * (b - a);
+        }
+
+        _grad2(hash, x, y) {
+            const h = hash & 3;
+            const u = h < 2 ? x : y;
+            const v = h < 2 ? y : x;
+            return ((h & 1) ? -u : u) + ((h & 2) ? -v : v);
+        }
+
+        _grad3(hash, x, y, z) {
+            const g = PerlinNoise.grad3[hash % 12];
+            return g[0] * x + g[1] * y + g[2] * z;
+        }
+
+        /**
+         * 2D Perlin noise
+         */
+        noise2D(x, y) {
+            const xi = Math.floor(x) & 255;
+            const yi = Math.floor(y) & 255;
+            const xf = x - Math.floor(x);
+            const yf = y - Math.floor(y);
+            
+            const u = this._fade(xf);
+            const v = this._fade(yf);
+            
+            const aa = this.perm[this.perm[xi] + yi];
+            const ab = this.perm[this.perm[xi] + yi + 1];
+            const ba = this.perm[this.perm[xi + 1] + yi];
+            const bb = this.perm[this.perm[xi + 1] + yi + 1];
+            
+            const x1 = this._lerp(this._grad2(aa, xf, yf), this._grad2(ba, xf - 1, yf), u);
+            const x2 = this._lerp(this._grad2(ab, xf, yf - 1), this._grad2(bb, xf - 1, yf - 1), u);
+            
+            return this._lerp(x1, x2, v);
+        }
+
+        /**
+         * 3D Perlin noise
+         */
+        noise3D(x, y, z) {
+            const xi = Math.floor(x) & 255;
+            const yi = Math.floor(y) & 255;
+            const zi = Math.floor(z) & 255;
+            const xf = x - Math.floor(x);
+            const yf = y - Math.floor(y);
+            const zf = z - Math.floor(z);
+            
+            const u = this._fade(xf);
+            const v = this._fade(yf);
+            const w = this._fade(zf);
+            
+            const aaa = this.perm[this.perm[this.perm[xi] + yi] + zi];
+            const aba = this.perm[this.perm[this.perm[xi] + yi + 1] + zi];
+            const aab = this.perm[this.perm[this.perm[xi] + yi] + zi + 1];
+            const abb = this.perm[this.perm[this.perm[xi] + yi + 1] + zi + 1];
+            const baa = this.perm[this.perm[this.perm[xi + 1] + yi] + zi];
+            const bba = this.perm[this.perm[this.perm[xi + 1] + yi + 1] + zi];
+            const bab = this.perm[this.perm[this.perm[xi + 1] + yi] + zi + 1];
+            const bbb = this.perm[this.perm[this.perm[xi + 1] + yi + 1] + zi + 1];
+            
+            const x1 = this._lerp(
+                this._lerp(this._grad3(aaa, xf, yf, zf), this._grad3(baa, xf-1, yf, zf), u),
+                this._lerp(this._grad3(aba, xf, yf-1, zf), this._grad3(bba, xf-1, yf-1, zf), u),
+                v
+            );
+            const x2 = this._lerp(
+                this._lerp(this._grad3(aab, xf, yf, zf-1), this._grad3(bab, xf-1, yf, zf-1), u),
+                this._lerp(this._grad3(abb, xf, yf-1, zf-1), this._grad3(bbb, xf-1, yf-1, zf-1), u),
+                v
+            );
+            
+            return this._lerp(x1, x2, w);
+        }
+
+        /**
+         * Fractal Brownian Motion
+         */
+        fbm(x, y = null, z = null, octaves = 4, lacunarity = 2, persistence = 0.5) {
+            let value = 0;
+            let amplitude = 1;
+            let frequency = 1;
+            let maxValue = 0;
+            
+            for (let i = 0; i < octaves; i++) {
+                if (z !== null) {
+                    value += amplitude * this.noise3D(x * frequency, y * frequency, z * frequency);
+                } else if (y !== null) {
+                    value += amplitude * this.noise2D(x * frequency, y * frequency);
+                }
+                
+                maxValue += amplitude;
+                amplitude *= persistence;
+                frequency *= lacunarity;
+            }
+            
+            return value / maxValue;
+        }
+    }
+
+    /**
+     * Worley (Cellular/Voronoi) Noise
+     * Great for stone textures, biological patterns, cracked earth
+     */
+    class WorleyNoise {
+        constructor(seed = Date.now()) {
+            this.rng = new PRNG(seed, 'xoshiro128');
+            this.seed = seed;
+        }
+
+        _hash(x, y, z = 0) {
+            // Create deterministic random point positions per cell
+            const rng = new PRNG(`${this.seed}_${x}_${y}_${z}`, 'xoshiro128');
+            return {
+                x: x + rng.random(),
+                y: y + rng.random(),
+                z: z + rng.random()
+            };
+        }
+
+        /**
+         * 2D Worley noise
+         * @param {number} x - X coordinate
+         * @param {number} y - Y coordinate
+         * @param {string} distanceType - 'euclidean', 'manhattan', or 'chebyshev'
+         * @param {number} returnType - 0 = F1, 1 = F2, 2 = F2-F1
+         */
+        noise2D(x, y, distanceType = 'euclidean', returnType = 0) {
+            const xi = Math.floor(x);
+            const yi = Math.floor(y);
+            
+            const distances = [];
+            
+            // Check 3x3 neighborhood
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    const cellX = xi + dx;
+                    const cellY = yi + dy;
+                    const point = this._hash(cellX, cellY);
+                    
+                    let dist;
+                    const px = point.x - x;
+                    const py = point.y - y;
+                    
+                    switch (distanceType) {
+                        case 'manhattan':
+                            dist = Math.abs(px) + Math.abs(py);
+                            break;
+                        case 'chebyshev':
+                            dist = Math.max(Math.abs(px), Math.abs(py));
+                            break;
+                        default: // euclidean
+                            dist = Math.sqrt(px * px + py * py);
+                    }
+                    
+                    distances.push(dist);
+                }
+            }
+            
+            distances.sort((a, b) => a - b);
+            
+            switch (returnType) {
+                case 1: return distances[1]; // F2 (second closest)
+                case 2: return distances[1] - distances[0]; // F2 - F1 (cell edges)
+                default: return distances[0]; // F1 (closest)
+            }
+        }
+
+        /**
+         * 3D Worley noise
+         */
+        noise3D(x, y, z, distanceType = 'euclidean', returnType = 0) {
+            const xi = Math.floor(x);
+            const yi = Math.floor(y);
+            const zi = Math.floor(z);
+            
+            const distances = [];
+            
+            // Check 3x3x3 neighborhood
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dz = -1; dz <= 1; dz++) {
+                        const cellX = xi + dx;
+                        const cellY = yi + dy;
+                        const cellZ = zi + dz;
+                        const point = this._hash(cellX, cellY, cellZ);
+                        
+                        let dist;
+                        const px = point.x - x;
+                        const py = point.y - y;
+                        const pz = point.z - z;
+                        
+                        switch (distanceType) {
+                            case 'manhattan':
+                                dist = Math.abs(px) + Math.abs(py) + Math.abs(pz);
+                                break;
+                            case 'chebyshev':
+                                dist = Math.max(Math.abs(px), Math.abs(py), Math.abs(pz));
+                                break;
+                            default: // euclidean
+                                dist = Math.sqrt(px * px + py * py + pz * pz);
+                        }
+                        
+                        distances.push(dist);
+                    }
+                }
+            }
+            
+            distances.sort((a, b) => a - b);
+            
+            switch (returnType) {
+                case 1: return distances[1];
+                case 2: return distances[1] - distances[0];
+                default: return distances[0];
+            }
+        }
+
+        /**
+         * FBM for Worley noise
+         */
+        fbm(x, y = null, z = null, octaves = 4, lacunarity = 2, persistence = 0.5, distanceType = 'euclidean', returnType = 0) {
+            let value = 0;
+            let amplitude = 1;
+            let frequency = 1;
+            let maxValue = 0;
+            
+            for (let i = 0; i < octaves; i++) {
+                if (z !== null) {
+                    value += amplitude * this.noise3D(x * frequency, y * frequency, z * frequency, distanceType, returnType);
+                } else if (y !== null) {
+                    value += amplitude * this.noise2D(x * frequency, y * frequency, distanceType, returnType);
+                }
+                
+                maxValue += amplitude;
+                amplitude *= persistence;
+                frequency *= lacunarity;
+            }
+            
+            return value / maxValue;
+        }
+    }
+
+    /**
+     * Ridged Multifractal Noise
+     * Great for mountain ridges, lightning, veins
+     */
+    class RidgedNoise {
+        constructor(seed = Date.now()) {
+            this.simplex = new SimplexNoise(seed);
+        }
+
+        _ridge(value, offset = 1) {
+            value = offset - Math.abs(value);
+            return value * value;
+        }
+
+        /**
+         * 2D Ridged noise
+         */
+        noise2D(x, y) {
+            return this._ridge(this.simplex.noise2D(x, y));
+        }
+
+        /**
+         * 3D Ridged noise
+         */
+        noise3D(x, y, z) {
+            return this._ridge(this.simplex.noise3D(x, y, z));
+        }
+
+        /**
+         * Ridged multifractal FBM
+         */
+        fbm(x, y = null, z = null, octaves = 4, lacunarity = 2, persistence = 0.5, offset = 1) {
+            let value = 0;
+            let amplitude = 1;
+            let frequency = 1;
+            let weight = 1;
+            
+            for (let i = 0; i < octaves; i++) {
+                let noise;
+                if (z !== null) {
+                    noise = this.simplex.noise3D(x * frequency, y * frequency, z * frequency);
+                } else if (y !== null) {
+                    noise = this.simplex.noise2D(x * frequency, y * frequency);
+                }
+                
+                // Ridge transformation
+                noise = offset - Math.abs(noise);
+                noise = noise * noise;
+                
+                // Weight successive contributions by previous signal
+                noise *= weight;
+                weight = Math.min(1, Math.max(0, noise * 2));
+                
+                value += noise * amplitude;
+                amplitude *= persistence;
+                frequency *= lacunarity;
+            }
+            
+            return value;
+        }
+    }
+
+    /**
+     * Billowed Noise (abs of regular noise)
+     * Great for clouds, soft terrain
+     */
+    class BillowedNoise {
+        constructor(seed = Date.now()) {
+            this.simplex = new SimplexNoise(seed);
+        }
+
+        /**
+         * 2D Billowed noise
+         */
+        noise2D(x, y) {
+            return Math.abs(this.simplex.noise2D(x, y));
+        }
+
+        /**
+         * 3D Billowed noise
+         */
+        noise3D(x, y, z) {
+            return Math.abs(this.simplex.noise3D(x, y, z));
+        }
+
+        /**
+         * Billowed FBM
+         */
+        fbm(x, y = null, z = null, octaves = 4, lacunarity = 2, persistence = 0.5) {
+            let value = 0;
+            let amplitude = 1;
+            let frequency = 1;
+            let maxValue = 0;
+            
+            for (let i = 0; i < octaves; i++) {
+                if (z !== null) {
+                    value += amplitude * Math.abs(this.simplex.noise3D(x * frequency, y * frequency, z * frequency));
+                } else if (y !== null) {
+                    value += amplitude * Math.abs(this.simplex.noise2D(x * frequency, y * frequency));
+                }
+                
+                maxValue += amplitude;
+                amplitude *= persistence;
+                frequency *= lacunarity;
+            }
+            
+            return value / maxValue;
+        }
     }
 
     // ============================================================
@@ -1443,7 +2011,11 @@
         // Noise generators
         Noise: {
             ValueNoise,
-            SimplexNoise
+            SimplexNoise,
+            PerlinNoise,
+            WorleyNoise,
+            RidgedNoise,
+            BillowedNoise
         },
         
         // Utility functions
